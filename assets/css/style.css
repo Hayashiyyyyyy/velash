@@ -8,9 +8,9 @@
   --line: rgba(236, 235, 242, 0.14);
   --accent: #ff2f8e;
   --accent-2: #7d8cff;
-  --display: 'Unbounded', 'Noto Sans JP', sans-serif;
-  --mono: 'JetBrains Mono', 'Noto Sans JP', monospace;
-  --body: 'Noto Sans JP', sans-serif;
+  --display: 'Unbounded', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', Meiryo, 'Noto Sans JP', sans-serif;
+  --mono: 'JetBrains Mono', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', Meiryo, 'Noto Sans JP', sans-serif;
+  --body: system-ui, -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', Meiryo, 'Noto Sans JP', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -717,3 +717,62 @@ main { position: relative; z-index: 1; }
 .intro-logo img.c-pink, .intro-logo img.c-blue { position: absolute; inset: 0; }
 .intro-logo img.c-pink { filter: sepia(1) saturate(9) hue-rotate(290deg); }
 .intro-logo img.c-blue { filter: sepia(1) saturate(9) hue-rotate(190deg); }
+
+/* =========================================================
+   MOBILE v2: layout without overlaps, readable menu, lighter
+   ========================================================= */
+@media (max-width: 900px) {
+  /* hero: headline pinned to the bottom, 3D logo lives in the upper half */
+  .hero-ui { grid-template-rows: 1fr auto; padding: 72px 18px 22px; }
+  .hero-bottom { grid-row: 2; gap: 14px; }
+  .hero-copy { font-size: clamp(36px, 11vw, 60px); line-height: .95; }
+  .hero::after { height: 58%; background: linear-gradient(to top, rgba(3,3,6,.94) 0%, rgba(3,3,6,.75) 45%, rgba(3,3,6,0) 100%); }
+  .hero-meta { line-height: 1.9; }
+
+  /* no giant outlined words behind text on phones */
+  .bg-word { display: none; }
+  .glitch::before, .glitch::after { display: none; }
+  .tapes { margin: 0; height: 110px; }
+
+  /* section heads: link drops under the title instead of colliding */
+  .section-head { flex-direction: column; align-items: flex-start; gap: 14px; }
+
+  /* lighter background on phones: static glow, no film grain overlay */
+  body::after { display: none; }
+  .backdrop .blob { animation: none; }
+  .page-hero::before { animation: none; }
+
+  /* ----- menu: solid full-screen panel, numbered rows ----- */
+  .site-header .brand, .site-header > div { position: relative; z-index: 60; }
+  .site-nav {
+    position: fixed; inset: 0; z-index: 55;
+    display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 0;
+    padding: 90px 22px 48px;
+    background: #050508;
+    background-image: radial-gradient(circle at 85% 15%, rgba(255,47,142,.22), transparent 50%), radial-gradient(circle at 10% 90%, rgba(58,44,255,.22), transparent 50%);
+    transform: none; clip-path: inset(0 0 100% 0); visibility: hidden;
+    transition: clip-path .55s cubic-bezier(.7,0,.2,1), visibility 0s linear .55s;
+    counter-reset: nav;
+  }
+  .site-nav.open { clip-path: inset(0 0 0 0); visibility: visible; transition: clip-path .55s cubic-bezier(.7,0,.2,1), visibility 0s; }
+  .site-nav a {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--display); font-weight: 900; font-size: clamp(30px, 9.5vw, 44px); letter-spacing: -.01em;
+    color: var(--fg); padding: 16px 0; border-bottom: 1px solid rgba(236,235,242,.14);
+    opacity: 0; transform: translateY(24px); transition: opacity .4s, transform .5s cubic-bezier(.2,.7,.2,1), color .2s;
+  }
+  .site-nav a:first-child { border-top: 1px solid rgba(236,235,242,.14); }
+  .site-nav a::after { display: none; }
+  .site-nav a::before { counter-increment: nav; content: '0' counter(nav); order: 2; font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: .15em; color: var(--accent); }
+  .site-nav a[aria-current="page"] { color: var(--accent); }
+  .site-nav.open a { opacity: 1; transform: none; }
+  .site-nav.open a:nth-child(1) { transition-delay: .15s; }
+  .site-nav.open a:nth-child(2) { transition-delay: .2s; }
+  .site-nav.open a:nth-child(3) { transition-delay: .25s; }
+  .site-nav.open a:nth-child(4) { transition-delay: .3s; }
+  .site-nav.open a:nth-child(5) { transition-delay: .35s; }
+  .menu-btn { border: 1px solid rgba(236,235,242,.4); padding: 8px 12px; }
+  .menu-btn[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  body.menu-open { overflow: hidden; }
+  body.menu-open .site-header::before { opacity: 0; }
+}

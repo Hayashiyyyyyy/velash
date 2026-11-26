@@ -81,11 +81,15 @@ function renderChrome() {
 
   const menuBtn = document.getElementById('menu-btn');
   const siteNav = document.getElementById('site-nav');
-  menuBtn.onclick = () => {
-    const isOpen = siteNav.classList.toggle('open');
+  const setMenu = (isOpen) => {
+    siteNav.classList.toggle('open', isOpen);
+    document.body.classList.toggle('menu-open', isOpen);
     menuBtn.setAttribute('aria-expanded', isOpen);
     menuBtn.textContent = isOpen ? 'CLOSE' : 'MENU';
   };
+  menuBtn.onclick = () => setMenu(!siteNav.classList.contains('open'));
+  siteNav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 }
 
 /* ---------- cart (localStorage) ---------- */
@@ -135,7 +139,7 @@ function renderProductGrid() {
     <article class="product-card reveal">
       <div class="product-media">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
+        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.photo ? 1000 : 1200}w" sizes="(max-width: 900px) 50vw, 33vw" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
         <div class="shine"></div>
       </div>
       <div class="product-info">
@@ -172,7 +176,7 @@ function initRing() {
   const radius = Math.round((w / 2) / Math.tan(Math.PI / n)) + 60;
   ring.innerHTML = items.map((p, i) => `
     <a class="ring-item" href="shop.html" style="transform:rotateY(${(360 / n) * i}deg) translateZ(${radius}px)">
-      <img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
+      <img loading="lazy" decoding="async" src="${IMG}${p.img.replace('.webp', '-640.webp')}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
       <span class="cap"><span>${p.name.toUpperCase()}</span><span>${p.color.toUpperCase()}</span></span>
     </a>`).join('');
 
