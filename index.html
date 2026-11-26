@@ -15,6 +15,24 @@
 </head>
 <body data-page="home">
 
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro-shutter top"></div>
+  <div class="intro-shutter bottom"></div>
+  <div class="intro-content">
+    <div class="intro-grid"></div>
+    <div class="intro-logo">
+      <span class="logo-crop c-pink"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
+      <span class="logo-crop c-blue"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
+      <span class="logo-crop c-main"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
+    </div>
+    <p class="intro-text" id="intro-text">BREAK THROUGH THE ORDINARY</p>
+    <div class="intro-meta"><span>VE:LASH / SYSTEM BOOT</span><span id="intro-count">000</span></div>
+    <div class="intro-bar"><span id="intro-bar"></span></div>
+  </div>
+  <div class="intro-flash"></div>
+  <button class="intro-skip" id="intro-skip" tabindex="-1">SKIP</button>
+</div>
+
 <main>
   <section class="hero" aria-label="VE:LASH">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
@@ -274,13 +292,20 @@ addEventListener('pointermove', (e) => {
 let scrollP = 0;
 addEventListener('scroll', () => { scrollP = Math.min(1, scrollY / innerHeight); }, { passive: true });
 
+let baseZ = 9;
+// opening: logo flies in from the distance after the intro screen
+let introStart = null;
+const startIntro = () => { if (introStart === null) introStart = performance.now(); };
+if (document.body.classList.contains('intro-done')) startIntro();
+else addEventListener('velash:intro-done', startIntro);
+
 function resize() {
   const w = hero.clientWidth, h = hero.clientHeight;
   renderer.setSize(w, h, false);
   composer.setSize(w, h);
   camera.aspect = w / h;
   // keep the logo fitting on narrow screens
-  camera.position.z = w / h < 1 ? 9 / (w / h) * 0.75 : 9;
+  baseZ = w / h < 1 ? 9 / (w / h) * 0.75 : 9;
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
@@ -298,7 +323,10 @@ function tick() {
   uniformsShared.uTime.value = t;
 
   mouse.lerp(target, 0.06);
-  logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12;
+  const k = introStart === null ? 0 : (reduce ? 1 : Math.min(1, (performance.now() - introStart) / 2200));
+  const ease = 1 - Math.pow(1 - k, 4);
+  logoGroup.scale.setScalar(0.001 + ease * 0.999);
+  logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 + (1 - ease) * Math.PI * 2;
   logoGroup.rotation.x = mouse.y * 0.3 + scrollP * 0.6;
   logoGroup.position.y = 0.7 + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5;
 
@@ -315,6 +343,7 @@ function tick() {
   ring.rotation.z = t * 0.2;
   particles.rotation.y = t * 0.01 + mouse.x * 0.05;
 
+  camera.position.z = baseZ + (1 - ease) * 10;
   camera.position.x = mouse.x * 0.4;
   camera.position.y = -mouse.y * 0.25;
   camera.lookAt(0, 0.3 + scrollP * 0.8, 0);
@@ -324,5 +353,6 @@ function tick() {
 tick();
 </script>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/intro.js"></script>
 </body>
 </html>

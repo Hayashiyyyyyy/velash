@@ -49,9 +49,7 @@ function renderChrome() {
         <ul><li>SITE</li><li><a href="index.html">Home</a></li><li><a href="collection.html">Collection</a></li><li><a href="shop.html">Shop</a></li><li><a href="contact.html">News / Contact</a></li></ul>
         <ul><li>SOCIAL</li><li><a href="#">Instagram</a></li><li><a href="#">TikTok</a></li><li><a href="#">X</a></li></ul>
       </div>
-    </div>
-    <div class="footer-logo"><span class="logo-crop"><img class="logo-img" src="${IMG}logo.jpg" alt=""></span></div>
-    <div class="footer-bottom"><span>&copy; VE:LASH</span><span>BREAK THROUGH THE ORDINARY</span></div>`;
+    </div>    <div class="footer-bottom"><span>&copy; VE:LASH</span><span>BREAK THROUGH THE ORDINARY</span></div>`;
   document.body.append(footer);
 
   const drawer = document.createElement('aside');
