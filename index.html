@@ -40,7 +40,7 @@
   <section class="hero" aria-label="VE:LASH">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-ui">
-      <p class="hero-tag">[ VE:LASH ] — Streetwear from Tokyo / Collection 01</p>
+      <p class="hero-tag">[ VE:LASH ] — Holiday Edition 2026 / Collection 01</p>
       <div class="hero-bottom">
         <h1 class="hero-copy">
           Break <span class="outline">through</span><br>
@@ -56,8 +56,8 @@
 
   <div class="tapes" aria-hidden="true">
     <div class="tape tape-a"><div class="marquee-track">
-      <span>VE:LASH</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
-      <span>VE:LASH</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
+      <span>Merry Christmas</span><span class="star">✶</span><span>VE:LASH Holiday</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
+      <span>Merry Christmas</span><span class="star">✶</span><span>VE:LASH Holiday</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
     </div></div>
     <div class="tape tape-b"><div class="marquee-track">
       <span>Break through the ordinary</span><span class="star">///</span><span>Collection 01</span><span class="star">///</span><span>Carry scars like medals</span><span class="star">///</span>
@@ -301,6 +301,86 @@ for (let i = 0; i < SLICES; i++) {
   logoGroup.add(m);
 }
 
+/* ---------- CHRISTMAS: wreath hung on the top-right of the "H" ---------- */
+const wreath = new THREE.Group();
+{
+  const R = 0.36; // wreath radius (world units)
+  // base ring
+  wreath.add(new THREE.Mesh(
+    new THREE.TorusGeometry(R, 0.07, 10, 48),
+    new THREE.MeshStandardMaterial({ color: 0x0b3a1e, roughness: 0.8 })
+  ));
+  // leaves: flattened ellipsoids in several greens, scattered around the ring
+  const LEAVES = lite ? 70 : 110;
+  const leafGeo = new THREE.SphereGeometry(1, 8, 6); leafGeo.scale(0.085, 0.035, 0.02);
+  const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05 }), LEAVES);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
+  const greens = [0x0f5c2e, 0x167a3c, 0x0b4a25, 0x1f8f47, 0x2b6e3a];
+  const col = new THREE.Color();
+  for (let i = 0; i < LEAVES; i++) {
+    const a = (i / LEAVES) * Math.PI * 2 + Math.random() * 0.2;
+    const r = R + (Math.random() - 0.5) * 0.12;
+    p.set(Math.cos(a) * r, Math.sin(a) * r, (Math.random() - 0.5) * 0.08);
+    e.set((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, a + Math.PI / 2 + (Math.random() - 0.5) * 1.6);
+    q.setFromEuler(e);
+    sc.setScalar(0.8 + Math.random() * 0.5);
+    leaves.setMatrixAt(i, m4.compose(p, q, sc));
+    leaves.setColorAt(i, col.set(greens[i % greens.length]));
+  }
+  wreath.add(leaves);
+  // red berries
+  const BERRIES = 16;
+  const berries = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.03, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0xd4122e, roughness: 0.25, emissive: 0x5a0010 }),
+    BERRIES
+  );
+  for (let i = 0; i < BERRIES; i++) {
+    const a = (i / BERRIES) * Math.PI * 2 + 0.3 + Math.random() * 0.25;
+    const r = R + (Math.random() - 0.5) * 0.1;
+    p.set(Math.cos(a) * r, Math.sin(a) * r, 0.06 + Math.random() * 0.03);
+    berries.setMatrixAt(i, m4.compose(p, q.identity(), sc.setScalar(0.8 + Math.random() * 0.6)));
+  }
+  wreath.add(berries);
+  // red ribbon bow at the bottom
+  const ribbon = new THREE.MeshStandardMaterial({ color: 0xc8102e, roughness: 0.35, emissive: 0x3a0008 });
+  const loopGeo = new THREE.TorusGeometry(0.075, 0.025, 8, 20); loopGeo.scale(1.25, 0.7, 0.6);
+  const bowL = new THREE.Mesh(loopGeo, ribbon); bowL.position.set(-0.085, -R, 0.1); bowL.rotation.z = 0.35;
+  const bowR = new THREE.Mesh(loopGeo, ribbon); bowR.position.set(0.085, -R, 0.1); bowR.rotation.z = -0.35;
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), ribbon); knot.position.set(0, -R, 0.12);
+  const tailGeo = new THREE.BoxGeometry(0.04, 0.16, 0.012);
+  const tailL = new THREE.Mesh(tailGeo, ribbon); tailL.position.set(-0.04, -R - 0.11, 0.1); tailL.rotation.z = -0.3;
+  const tailR = new THREE.Mesh(tailGeo, ribbon); tailR.position.set(0.04, -R - 0.11, 0.1); tailR.rotation.z = 0.3;
+  wreath.add(bowL, bowR, knot, tailL, tailR);
+}
+// top-right corner of the "H" (logo is LOGO_W x LOGO_H, centered on the origin)
+wreath.position.set(LOGO_W * 0.295, LOGO_H * 0.3, DEPTH / 2 + 0.08);
+wreath.scale.setScalar(1.15);
+wreath.rotation.z = -0.18;
+logoGroup.add(wreath);
+
+/* ---------- CHRISTMAS: snowfall ---------- */
+const SNOW = lite ? 350 : 700;
+const snowPos = new Float32Array(SNOW * 3);
+const snowVel = new Float32Array(SNOW);
+for (let i = 0; i < SNOW; i++) {
+  snowPos[i * 3] = (Math.random() - 0.5) * 34;
+  snowPos[i * 3 + 1] = (Math.random() - 0.5) * 22;
+  snowPos[i * 3 + 2] = -Math.random() * 26 + 6;
+  snowVel[i] = 0.4 + Math.random() * 0.8;
+}
+const flake = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'); const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.35, 'rgba(255,255,255,.8)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+})();
+const snowGeo = new THREE.BufferGeometry();
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({ map: flake, size: 0.17, transparent: true, depthWrite: false, opacity: 0.95, color: 0xffffff }));
+scene.add(snow);
+
 /* ---------- chrome six-point stars ---------- */
 function starShape(outer = 1, inner = 0.38, points = 6) {
   const s = new THREE.Shape();
@@ -322,7 +402,7 @@ const pinkChrome = new THREE.MeshStandardMaterial({ color: 0xff2f8e, metalness: 
 
 const stars = [];
 const starDefs = [
-  [-4.6, 2.0, -1.5, 0.55, chrome], [4.8, -1.9, -0.8, 0.7, chrome], [3.6, 2.4, -3.5, 0.45, pinkChrome],
+  [-4.6, 2.0, -1.5, 0.55, chrome], [4.8, -1.9, -0.8, 0.7, chrome], [3.4, -2.7, -3.5, 0.45, pinkChrome],
   [-3.8, -2.3, -2.6, 0.5, pinkChrome], [-6.2, -0.2, -5, 0.8, chrome], [6.4, 0.8, -5.5, 0.6, chrome],
   [0.4, -3.0, -4, 0.35, chrome], [-1.2, 3.1, -6, 0.5, pinkChrome],
 ];
@@ -352,7 +432,7 @@ const ring = new THREE.Mesh(new THREE.TorusGeometry(4.6, 0.012, 8, 200), new THR
 ring.rotation.x = Math.PI / 2.3;
 ring.position.z = -1.5;
 scene.add(ring);
-const ring2 = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.008, 8, 200), new THREE.MeshBasicMaterial({ color: 0x7d8cff }));
+const ring2 = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.008, 8, 200), new THREE.MeshBasicMaterial({ color: 0x1fbf5f }));
 ring2.rotation.set(Math.PI / 1.8, 0.4, 0);
 ring2.position.z = -2;
 scene.add(ring2);
@@ -467,7 +547,7 @@ function layoutLogo(w, h) {
   const pxPerWorld = h / (2 * baseZ * Math.tan(THREE.MathUtils.degToRad(20)));
   const availH = Math.max(60, bottom - top);
   logoScale = Math.min(1, (w * 0.84) / (LOGO_W * pxPerWorld), (availH * 0.8) / (LOGO_H * pxPerWorld));
-  const centerPx = (top + bottom) / 2;
+  const centerPx = top + (bottom - top) * 0.62; // sit a little low in the band, closer to the headline
   logoY = 0.3 + (h / 2 - centerPx) / pxPerWorld;
 }
 addEventListener('resize', resize);
@@ -546,6 +626,19 @@ function tick() {
   core.rotation.y = t * 0.12;
   ring.rotation.z = t * 0.2;
   ring2.rotation.z = -t * 0.15;
+
+  // snow drifts down (and gets pulled toward the camera while warping)
+  if (!reduce) {
+    for (let i = 0; i < SNOW; i++) {
+      snowPos[i * 3 + 1] -= snowVel[i] * dt * 0.9;
+      snowPos[i * 3] += Math.sin(t * 0.8 + i) * 0.003;
+      snowPos[i * 3 + 2] += warp * 30 * dt;
+      if (snowPos[i * 3 + 1] < -11) snowPos[i * 3 + 1] = 11;
+      if (snowPos[i * 3 + 2] > 8) snowPos[i * 3 + 2] = -20;
+    }
+    snowGeo.attributes.position.needsUpdate = true;
+  }
+  wreath.rotation.z = -0.18 + Math.sin(t * 1.3) * 0.05;
 
   // streaks fly toward the camera
   const sp = (reduce ? 0 : 1) * (6 + warp * 90);

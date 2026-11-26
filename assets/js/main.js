@@ -33,7 +33,7 @@ function renderChrome() {
       ${nav.map(([href, label, key], i) => `<a href="${href}" style="--i:${i}"${key === page ? ' aria-current="page"' : ''}><span class="nl" data-text="${label}">${label}</span></a>`).join('')}
       <div class="nav-foot">
         <div class="nav-social"><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">X</a></div>
-        <div class="nav-tape" aria-hidden="true"><div class="marquee-track"><span>BREAK THROUGH THE ORDINARY ✶ WE DON'T FOLLOW TRENDS ✶ WE CREATE THEM ✶&nbsp;</span><span>BREAK THROUGH THE ORDINARY ✶ WE DON'T FOLLOW TRENDS ✶ WE CREATE THEM ✶&nbsp;</span></div></div>
+        <div class="nav-tape" aria-hidden="true"><div class="marquee-track"><span>MERRY CHRISTMAS ✶ BREAK THROUGH THE ORDINARY ✶ VE:LASH HOLIDAY ✶&nbsp;</span><span>MERRY CHRISTMAS ✶ BREAK THROUGH THE ORDINARY ✶ VE:LASH HOLIDAY ✶&nbsp;</span></div></div>
       </div>
     </nav>
     <div style="display:flex;gap:20px;align-items:center">
@@ -275,7 +275,7 @@ function initBackdrop() {
   const bd = document.createElement('div');
   bd.className = 'backdrop';
   bd.setAttribute('aria-hidden', 'true');
-  bd.innerHTML = '<i class="blob b1"></i><i class="blob b2"></i><i class="grid"></i>';
+  bd.innerHTML = '<i class="blob b1"></i><i class="blob b2"></i><i class="grid"></i><i class="snow s1"></i><i class="snow s2"></i>';
   document.body.prepend(bd);
 }
 
