@@ -27,7 +27,14 @@ function renderChrome() {
   header.innerHTML = `
     <a class="brand" href="index.html" aria-label="VE:LASH home"><img class="brand-logo" src="${IMG}logo-white.webp" alt="VE:LASH"></a>
     <nav class="site-nav" id="site-nav">
-      ${nav.map(([href, label, key]) => `<a href="${href}"${key === page ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
+      <i class="nav-sweep" aria-hidden="true"></i>
+      <i class="nav-grid" aria-hidden="true"></i>
+      <p class="nav-head" aria-hidden="true"><span>// NAVIGATION</span><span>VE:LASH</span></p>
+      ${nav.map(([href, label, key], i) => `<a href="${href}" style="--i:${i}"${key === page ? ' aria-current="page"' : ''}><span class="nl" data-text="${label}">${label}</span></a>`).join('')}
+      <div class="nav-foot">
+        <div class="nav-social"><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">X</a></div>
+        <div class="nav-tape" aria-hidden="true"><div class="marquee-track"><span>BREAK THROUGH THE ORDINARY ✶ WE DON'T FOLLOW TRENDS ✶ WE CREATE THEM ✶&nbsp;</span><span>BREAK THROUGH THE ORDINARY ✶ WE DON'T FOLLOW TRENDS ✶ WE CREATE THEM ✶&nbsp;</span></div></div>
+      </div>
     </nav>
     <div style="display:flex;gap:20px;align-items:center">
       <button class="cart-btn" id="cart-open">CART (<span id="cart-count">0</span>)</button>

@@ -450,9 +450,29 @@ function resize() {
   camera.aspect = w / h;
   baseZ = w / h < 1 ? 9 / (w / h) * 0.75 : 9;
   camera.updateProjectionMatrix();
+  layoutLogo(w, h);
+}
+
+// Portrait screens: place the 3D logo exactly in the free band between the header and the headline,
+// sized to fit it, so it never overlaps any text whatever the phone size.
+let logoY = 0.7, logoScale = 1, portrait = false;
+function layoutLogo(w, h) {
+  portrait = w / h < 0.9;
+  stars.forEach((s) => { s.visible = !portrait || s.userData.base.y > -1.5; });
+  if (!portrait) { logoY = 0.7; logoScale = 1; return; }
+  const headline = document.querySelector('.hero-bottom');
+  const header = document.querySelector('.site-header');
+  const top = (header ? header.offsetHeight : 64) + 16;
+  const bottom = (headline ? headline.offsetTop : h * 0.6) - 24;
+  const pxPerWorld = h / (2 * baseZ * Math.tan(THREE.MathUtils.degToRad(20)));
+  const availH = Math.max(60, bottom - top);
+  logoScale = Math.min(1, (w * 0.84) / (LOGO_W * pxPerWorld), (availH * 0.8) / (LOGO_H * pxPerWorld));
+  const centerPx = (top + bottom) / 2;
+  logoY = 0.3 + (h / 2 - centerPx) / pxPerWorld;
 }
 addEventListener('resize', resize);
 resize();
+document.fonts && document.fonts.ready.then(resize); // headline height changes once the web font arrives
 
 /* ---------- loop ---------- */
 const clock = new THREE.Clock();
@@ -502,12 +522,10 @@ function tick() {
   fx.uniforms.uShift.value = 0.002 + mouseVel * 0.01 + warp * 0.012;
 
   mouse.lerp(target, 0.06);
-  logoGroup.scale.setScalar((0.001 + ease * 0.999) * (camera.aspect < 0.8 ? 0.82 : 1));
+  logoGroup.scale.setScalar((0.001 + ease * 0.999) * logoScale);
   logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 + (1 - ease) * Math.PI * 2;
   logoGroup.rotation.x = mouse.y * 0.3 + scrollP * 0.6;
-  // on tall (phone) screens lift the logo into the upper half so it doesn't sit under the headline
-  const lift = camera.aspect < 0.8 ? 1.6 : 0;
-  logoGroup.position.y = 0.7 + lift + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5 + (Math.random() - 0.5) * 0.04 * warp;
+  logoGroup.position.y = logoY + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5 + (Math.random() - 0.5) * 0.04 * warp;
 
   nebula.material.color.setScalar(1 + warp * 0.9);
   nebula.rotation.z = Math.sin(t * 0.03) * 0.04;
