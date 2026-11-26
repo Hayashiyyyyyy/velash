@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop | VE:LASH</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="shop">
+
+<main>
+  <section class="page-hero">
+    <p class="section-label">Online Store</p>
+    <h1 class="section-title">Shop</h1>
+  </section>
+
+  <section class="section">
+    <div class="viewer">
+      <div class="viewer-stage" id="viewer-stage" aria-label="商品の3Dビュー（ドラッグで回転）">
+        <span class="viewer-label">3D VIEW — DRAG TO ROTATE</span>
+        <div class="floor"></div>
+        <div class="garment">
+          <div class="face"><img src="assets/img/sweat-black.jpg" alt="Graffiti Logo Crew Sweat"></div>
+          <div class="face back"><img src="assets/img/sweat-black.jpg" alt=""></div>
+        </div>
+      </div>
+      <div class="viewer-info">
+        <p class="section-label" style="margin-bottom:14px">Featured / <span id="viewer-color">BLACK</span></p>
+        <h2>Graffiti Logo<br>Crew Sweat</h2>
+        <p class="price">PRICE TBA</p>
+        <p>タギングをモチーフにした立体刺繍ロゴのクルーネックスウェット。（商品説明・価格は仮）</p>
+        <p class="opt-label">Color</p>
+        <div class="color-pick">
+          <button data-id="sweat-black" aria-pressed="true" aria-label="Black" style="background:#111"></button>
+          <button data-id="sweat-navy" aria-pressed="false" aria-label="Navy" style="background:#1b2340"></button>
+          <button data-id="sweat-pink" aria-pressed="false" aria-label="Pink" style="background:#f2a6c8"></button>
+        </div>
+        <p class="opt-label">Size</p>
+        <div class="size-pick">
+          <button aria-pressed="false">S</button>
+          <button aria-pressed="true">M</button>
+          <button aria-pressed="false">L</button>
+          <button aria-pressed="false">XL</button>
+        </div>
+        <button class="add-btn" id="viewer-add" style="width:100%">Add to cart</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="section-head reveal">
+      <div>
+        <p class="section-label">All Items</p>
+        <h2 class="section-title">Items</h2>
+      </div>
+    </div>
+    <div class="product-grid" id="product-grid"></div>
+  </section>
+</main>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

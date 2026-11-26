@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VE:LASH | Break Through The Ordinary</title>
+<meta name="description" content="VE:LASH オフィシャルサイト">
+<link rel="stylesheet" href="assets/css/style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body data-page="home">
+
+<main>
+  <section class="hero" aria-label="VE:LASH">
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-ui">
+      <p class="hero-tag">[ VE:LASH ] — Streetwear from Tokyo / Collection 01</p>
+      <div class="hero-bottom">
+        <h1 class="hero-copy">
+          Break <span class="outline">through</span><br>
+          the <span class="pink">ordinary</span>
+        </h1>
+        <div class="hero-meta">
+          <strong>MOVE CURSOR</strong> TO ROTATE<br>
+          <span class="scroll-hint">SCROLL ↓</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>VE:LASH</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span>Pressure made me priceless</span><span class="star">✶</span>
+      <span>VE:LASH</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span>Pressure made me priceless</span><span class="star">✶</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <div>
+        <p class="section-label">01 / New Arrivals</p>
+        <h2 class="section-title glitch" data-text="New Drop">New Drop</h2>
+      </div>
+      <a class="section-link" href="shop.html">View all items →</a>
+    </div>
+    <div class="ring-stage" id="ring-stage">
+      <div class="ring"></div>
+    </div>
+    <p class="ring-hint">DRAG TO SPIN</p>
+  </section>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <div>
+        <p class="section-label">02 / Lookbook</p>
+        <h2 class="section-title">Street<br>Manifesto</h2>
+      </div>
+      <a class="section-link" href="collection.html">Collection →</a>
+    </div>
+    <div class="look-split">
+      <a class="big reveal" href="collection.html"><img src="assets/img/look-street.jpg" alt="VE:LASH ルック ストリート"></a>
+      <div class="look-side reveal">
+        <p class="manifesto">
+          Break through the ordinary.<br>
+          We don't follow trends,<br>we <em>create</em> them.<br>
+          Carry scars like <em>medals</em>.
+        </p>
+        <img src="assets/img/look-tee.jpg" alt="Manifesto Tee 着用イメージ">
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <div>
+        <p class="section-label">03 / News</p>
+        <h2 class="section-title">News</h2>
+      </div>
+      <a class="section-link" href="contact.html">All news →</a>
+    </div>
+    <div class="news-list reveal">
+      <a class="news-item" href="contact.html"><span class="news-date">2026.11.27</span><span class="news-cat">RELEASE</span><span class="news-title">Graffiti Logo Crew Sweat 3色同時リリース（ダミー）</span><span class="news-arrow">→</span></a>
+      <a class="news-item" href="contact.html"><span class="news-date">2026.11.20</span><span class="news-cat">LOOKBOOK</span><span class="news-title">Collection 01 ルックブック公開（ダミー）</span><span class="news-arrow">→</span></a>
+      <a class="news-item" href="contact.html"><span class="news-date">2026.11.10</span><span class="news-cat">INFO</span><span class="news-title">オフィシャルサイトをオープンしました（ダミー）</span><span class="news-arrow">→</span></a>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/logo-data.js"></script>
+<script type="module">
+/* VE:LASH hero - Three.js scene
+   - brand logo extruded as stacked shader slices (chrome / iridescent face)
+   - floating chrome six-point stars (motif from the Manifesto Tee)
+   - wireframe core + particle field, bloom post-processing
+*/
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const canvas = document.getElementById('hero-canvas');
+const hero = canvas.parentElement;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+} catch (e) {
+  hero.insertAdjacentHTML('afterbegin', '<div style="position:absolute;inset:0;display:grid;place-items:center"><span class="logo-crop" style="width:70%"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span></div>');
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07070a);
+scene.fog = new THREE.FogExp2(0x07070a, 0.07);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+camera.position.set(0, 0, 9);
+
+/* ---------- logo (stacked slices) ---------- */
+const logoGroup = new THREE.Group();
+scene.add(logoGroup);
+
+const tex = new THREE.TextureLoader().load(LOGO_DATA);
+tex.colorSpace = THREE.NoColorSpace;
+tex.anisotropy = 8;
+
+// crop region of the 1280x1280 logo image (u: 0.10-0.87, v: 0.29-0.63)
+const CROP = { ox: 0.10, oy: 0.29, sx: 0.77, sy: 0.34 };
+const LOGO_W = 6.4;
+const LOGO_H = LOGO_W * (CROP.sy / CROP.sx);
+const SLICES = 28;
+const DEPTH = 0.42;
+
+const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
+const uniformsShared = { uTime: { value: 0 }, map: { value: tex } };
+
+for (let i = 0; i < SLICES; i++) {
+  const layer = i / (SLICES - 1); // 0 = back, 1 = front
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { ...uniformsShared, uLayer: { value: layer } },
+    side: THREE.DoubleSide,
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      varying vec3 vWorld;
+      void main() {
+        vUv = uv;
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vWorld = w.xyz;
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }`,
+    fragmentShader: /* glsl */`
+      uniform sampler2D map;
+      uniform float uTime;
+      uniform float uLayer;
+      varying vec2 vUv;
+      varying vec3 vWorld;
+      void main() {
+        vec2 uv = vec2(${CROP.ox.toFixed(3)}, ${CROP.oy.toFixed(3)}) + vUv * vec2(${CROP.sx.toFixed(3)}, ${CROP.sy.toFixed(3)});
+        float lum = texture2D(map, uv).r;
+        if (lum > 0.5) discard;
+        vec3 col;
+        if (uLayer > 0.99) {
+          // chrome face with moving iridescent bands
+          float t = uTime * 0.6;
+          float band = sin(vUv.y * 9.0 - vUv.x * 3.0 + t * 2.0) * 0.5 + 0.5;
+          float sweep = smoothstep(0.0, 0.08, abs(fract(vUv.x * 0.6 - t * 0.25) - 0.5) - 0.42);
+          vec3 chrome = mix(vec3(0.32, 0.33, 0.38), vec3(0.86), band);
+          vec3 iri = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + vUv.x * 0.8 + t * 0.15));
+          col = mix(chrome, iri, 0.22);
+          col += (1.0 - sweep) * 0.6;
+        } else {
+          // extrusion side: dark metal fading to hot pink at the back
+          vec3 pink = vec3(1.0, 0.18, 0.56);
+          col = mix(pink * 0.9, vec3(0.08, 0.08, 0.11), smoothstep(0.0, 0.7, uLayer));
+        }
+        gl_FragColor = vec4(col, 1.0);
+      }`,
+  });
+  const m = new THREE.Mesh(sliceGeo, mat);
+  m.position.z = -DEPTH / 2 + layer * DEPTH;
+  logoGroup.add(m);
+}
+
+/* ---------- chrome six-point stars ---------- */
+function starShape(outer = 1, inner = 0.38, points = 6) {
+  const s = new THREE.Shape();
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = (i / (points * 2)) * Math.PI * 2 + Math.PI / 2;
+    const x = Math.cos(a) * r, y = Math.sin(a) * r;
+    i === 0 ? s.moveTo(x, y) : s.lineTo(x, y);
+  }
+  s.closePath();
+  return s;
+}
+const starGeo = new THREE.ExtrudeGeometry(starShape(), {
+  depth: 0.18, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.08, bevelSegments: 3,
+});
+starGeo.center();
+const chrome = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 });
+const pinkChrome = new THREE.MeshPhysicalMaterial({ color: 0xff2f8e, metalness: 1, roughness: 0.18, clearcoat: 1, emissive: 0x330014 });
+
+const stars = [];
+const starDefs = [
+  [-4.6, 2.0, -1.5, 0.55, chrome], [4.8, -1.9, -0.8, 0.7, chrome], [3.6, 2.4, -3.5, 0.45, pinkChrome],
+  [-3.8, -2.3, -2.6, 0.5, pinkChrome], [-6.2, -0.2, -5, 0.8, chrome], [6.4, 0.8, -5.5, 0.6, chrome],
+  [0.4, -3.0, -4, 0.35, chrome], [-1.2, 3.1, -6, 0.5, pinkChrome],
+];
+starDefs.forEach(([x, y, z, s, mat], i) => {
+  const m = new THREE.Mesh(starGeo, mat);
+  m.position.set(x, y, z);
+  m.scale.setScalar(s);
+  m.userData = { base: new THREE.Vector3(x, y, z), speed: 0.3 + (i % 4) * 0.12, phase: i * 1.7 };
+  scene.add(m);
+  stars.push(m);
+});
+
+/* ---------- wireframe core ---------- */
+const core = new THREE.Mesh(
+  new THREE.IcosahedronGeometry(3.2, 1),
+  new THREE.MeshBasicMaterial({ color: 0x7d8cff, wireframe: true, transparent: true, opacity: 0.12 })
+);
+core.position.z = -3;
+scene.add(core);
+
+const ring = new THREE.Mesh(
+  new THREE.TorusGeometry(4.6, 0.012, 8, 200),
+  new THREE.MeshBasicMaterial({ color: 0xff2f8e })
+);
+ring.rotation.x = Math.PI / 2.3;
+ring.position.z = -1.5;
+scene.add(ring);
+
+/* ---------- particles ---------- */
+const PCOUNT = 1400;
+const pPos = new Float32Array(PCOUNT * 3);
+for (let i = 0; i < PCOUNT; i++) {
+  pPos[i * 3] = (Math.random() - 0.5) * 30;
+  pPos[i * 3 + 1] = (Math.random() - 0.5) * 18;
+  pPos[i * 3 + 2] = -Math.random() * 20 + 3;
+}
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xcfd3ff, size: 0.025, transparent: true, opacity: 0.7 }));
+scene.add(particles);
+
+/* ---------- post ---------- */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.4, 0.9);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+/* ---------- interaction ---------- */
+const mouse = new THREE.Vector2(), target = new THREE.Vector2();
+addEventListener('pointermove', (e) => {
+  target.x = (e.clientX / innerWidth) * 2 - 1;
+  target.y = (e.clientY / innerHeight) * 2 - 1;
+});
+let scrollP = 0;
+addEventListener('scroll', () => { scrollP = Math.min(1, scrollY / innerHeight); }, { passive: true });
+
+function resize() {
+  const w = hero.clientWidth, h = hero.clientHeight;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  camera.aspect = w / h;
+  // keep the logo fitting on narrow screens
+  camera.position.z = w / h < 1 ? 9 / (w / h) * 0.75 : 9;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+let visible = true;
+new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(hero);
+
+function tick() {
+  requestAnimationFrame(tick);
+  if (!visible) return;
+  const t = reduce ? 0 : clock.getElapsedTime();
+  uniformsShared.uTime.value = t;
+
+  mouse.lerp(target, 0.06);
+  logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12;
+  logoGroup.rotation.x = mouse.y * 0.3 + scrollP * 0.6;
+  logoGroup.position.y = 0.7 + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5;
+
+  stars.forEach((s) => {
+    const { base, speed, phase } = s.userData;
+    s.rotation.y = t * speed + phase;
+    s.rotation.x = Math.sin(t * 0.4 + phase) * 0.6;
+    s.position.y = base.y + Math.sin(t * speed + phase) * 0.25;
+    s.position.x = base.x - mouse.x * 0.3 * (1 - base.z / 6);
+  });
+
+  core.rotation.x = t * 0.08;
+  core.rotation.y = t * 0.12;
+  ring.rotation.z = t * 0.2;
+  particles.rotation.y = t * 0.01 + mouse.x * 0.05;
+
+  camera.position.x = mouse.x * 0.4;
+  camera.position.y = -mouse.y * 0.25;
+  camera.lookAt(0, 0.3 + scrollP * 0.8, 0);
+
+  composer.render();
+}
+tick();
+</script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
