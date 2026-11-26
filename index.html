@@ -323,63 +323,105 @@ for (let i = 0; i < SLICES; i++) {
   logoGroup.add(m);
 }
 
-/* ---------- CHRISTMAS: wreath hung on the top-right of the "H" ---------- */
+/* ---------- CHRISTMAS: fir wreath hanging from the top-right spike of the "H" ----------
+   pivot (at the spike) -> red ribbon loop hooked over the spike -> two ribbon strands -> wreath
+   The pivot swings gently so the wreath reads as hanging. */
+const wreathPivot = new THREE.Group();
 const wreath = new THREE.Group();
 {
-  const R = 0.36; // wreath radius (world units)
-  // base ring
-  wreath.add(new THREE.Mesh(
-    new THREE.TorusGeometry(R, 0.07, 10, 48),
-    new THREE.MeshStandardMaterial({ color: 0x0b3a1e, roughness: 0.8 })
-  ));
-  // leaves: flattened ellipsoids in several greens, scattered around the ring
-  const LEAVES = lite ? 70 : 110;
-  const leafGeo = new THREE.SphereGeometry(1, 8, 6); leafGeo.scale(0.085, 0.035, 0.02);
-  const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05 }), LEAVES);
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
-  const greens = [0x0f5c2e, 0x167a3c, 0x0b4a25, 0x1f8f47, 0x2b6e3a];
+  const R = 0.4;        // ring radius
+  const TUBE = 0.1;     // body thickness
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
+  const UP = new THREE.Vector3(0, 1, 0), dir = new THREE.Vector3(), nrm = new THREE.Vector3(), tan = new THREE.Vector3();
   const col = new THREE.Color();
-  for (let i = 0; i < LEAVES; i++) {
-    const a = (i / LEAVES) * Math.PI * 2 + Math.random() * 0.2;
-    const r = R + (Math.random() - 0.5) * 0.12;
-    p.set(Math.cos(a) * r, Math.sin(a) * r, (Math.random() - 0.5) * 0.08);
-    e.set((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, a + Math.PI / 2 + (Math.random() - 0.5) * 1.6);
-    q.setFromEuler(e);
-    sc.setScalar(0.8 + Math.random() * 0.5);
-    leaves.setMatrixAt(i, m4.compose(p, q, sc));
-    leaves.setColorAt(i, col.set(greens[i % greens.length]));
+
+  // inner body (mostly hidden under needles)
+  wreath.add(new THREE.Mesh(new THREE.TorusGeometry(R, TUBE * 0.75, 12, 64), new THREE.MeshStandardMaterial({ color: 0x0c331c, roughness: 0.9 })));
+
+  // fir needles: thin 4-sided cones growing out of the body, swept along the ring
+  const N = lite ? 650 : 1100;
+  const needleGeo = new THREE.ConeGeometry(0.011, 0.15, 4); needleGeo.translate(0, 0.075, 0);
+  const needles = new THREE.InstancedMesh(needleGeo, new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.05 }), N);
+  const greens = [0x1b5e34, 0x23733f, 0x2d8a4c, 0x174d2b, 0x2a6e3c, 0x356f2f];
+  for (let i = 0; i < N; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const b = rnd(-Math.PI * 0.95, Math.PI * 0.95);          // around the tube cross-section (skip the very back)
+    tan.set(-Math.sin(a), Math.cos(a), 0);                     // along the ring
+    nrm.set(Math.cos(a) * Math.cos(b), Math.sin(a) * Math.cos(b), Math.sin(b)); // out of the tube
+    p.set(Math.cos(a) * R, Math.sin(a) * R, 0).addScaledVector(nrm, TUBE * rnd(0.55, 0.9));
+    dir.copy(nrm).multiplyScalar(0.75).addScaledVector(tan, rnd(0.35, 0.85)).add(new THREE.Vector3(rnd(-.2, .2), rnd(-.2, .2), rnd(-.2, .2))).normalize();
+    q.setFromUnitVectors(UP, dir);
+    sc.set(1, rnd(0.7, 1.25), 1);
+    needles.setMatrixAt(i, m4.compose(p, q, sc));
+    const frosted = Math.random() < 0.13;
+    needles.setColorAt(i, frosted ? col.set(0xd9efe6) : col.set(greens[(Math.random() * greens.length) | 0]).offsetHSL(0, 0, rnd(-0.04, 0.04)));
   }
-  wreath.add(leaves);
-  // red berries
-  const BERRIES = 16;
-  const berries = new THREE.InstancedMesh(
-    new THREE.SphereGeometry(0.03, 10, 8),
-    new THREE.MeshStandardMaterial({ color: 0xd4122e, roughness: 0.25, emissive: 0x5a0010 }),
-    BERRIES
-  );
-  for (let i = 0; i < BERRIES; i++) {
-    const a = (i / BERRIES) * Math.PI * 2 + 0.3 + Math.random() * 0.25;
-    const r = R + (Math.random() - 0.5) * 0.1;
-    p.set(Math.cos(a) * r, Math.sin(a) * r, 0.06 + Math.random() * 0.03);
-    berries.setMatrixAt(i, m4.compose(p, q.identity(), sc.setScalar(0.8 + Math.random() * 0.6)));
-  }
-  wreath.add(berries);
-  // red ribbon bow at the bottom
-  const ribbon = new THREE.MeshStandardMaterial({ color: 0xc8102e, roughness: 0.35, emissive: 0x3a0008 });
-  const loopGeo = new THREE.TorusGeometry(0.075, 0.025, 8, 20); loopGeo.scale(1.25, 0.7, 0.6);
-  const bowL = new THREE.Mesh(loopGeo, ribbon); bowL.position.set(-0.085, -R, 0.1); bowL.rotation.z = 0.35;
-  const bowR = new THREE.Mesh(loopGeo, ribbon); bowR.position.set(0.085, -R, 0.1); bowR.rotation.z = -0.35;
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), ribbon); knot.position.set(0, -R, 0.12);
-  const tailGeo = new THREE.BoxGeometry(0.04, 0.16, 0.012);
-  const tailL = new THREE.Mesh(tailGeo, ribbon); tailL.position.set(-0.04, -R - 0.11, 0.1); tailL.rotation.z = -0.3;
-  const tailR = new THREE.Mesh(tailGeo, ribbon); tailR.position.set(0.04, -R - 0.11, 0.1); tailR.rotation.z = 0.3;
-  wreath.add(bowL, bowR, knot, tailL, tailR);
+  wreath.add(needles);
+
+  // holly leaves (spiky outline) + berry clusters + pine cones, placed as decoration groups
+  const holly = (() => {
+    const s = new THREE.Shape(); const L = 0.17, Wd = 0.06;
+    s.moveTo(0, 0);
+    const pts = [[0.35, 1], [0.5, 0.55], [0.7, 0.95], [0.85, 0.5], [1.0, 0.0]];
+    pts.forEach(([u, w]) => s.lineTo(u * L, w * Wd));
+    [...pts].reverse().slice(1).forEach(([u, w]) => s.lineTo(u * L, -w * Wd));
+    s.lineTo(0, 0);
+    const g = new THREE.ExtrudeGeometry(s, { depth: 0.006, bevelEnabled: false }); g.translate(0, 0, -0.003);
+    return g;
+  })();
+  const hollyMat = new THREE.MeshStandardMaterial({ color: 0x0f5a2e, roughness: 0.25, metalness: 0.1, side: THREE.DoubleSide });
+  const berryMat = new THREE.MeshStandardMaterial({ color: 0xd0102c, roughness: 0.18, metalness: 0.05, emissive: 0x4a0010 });
+  const coneMat = new THREE.MeshStandardMaterial({ color: 0x6b4226, roughness: 0.85, flatShading: true });
+  const berryGeo = new THREE.SphereGeometry(0.028, 14, 10);
+  const pineGeo = new THREE.SphereGeometry(1, 7, 9); pineGeo.scale(0.045, 0.075, 0.045);
+  const spots = [0.35, 1.1, 1.9, 2.6, 3.3, 4.1, 4.9, 5.6];
+  spots.forEach((a, k) => {
+    const g = new THREE.Group();
+    g.position.set(Math.cos(a) * R, Math.sin(a) * R, TUBE * 0.75);
+    g.rotation.z = a + Math.PI / 2;
+    for (const s of [-1, 1]) {
+      const leaf = new THREE.Mesh(holly, hollyMat);
+      leaf.rotation.set(rnd(-0.3, 0.3), rnd(-0.4, 0.4), s > 0 ? 0.5 : Math.PI - 0.5);
+      g.add(leaf);
+    }
+    if (k % 3 === 2) {
+      const pc = new THREE.Mesh(pineGeo, coneMat); pc.position.set(0, -0.02, 0.05); pc.rotation.z = rnd(-1, 1); g.add(pc);
+    } else {
+      [[0, 0.025], [0.03, -0.012], [-0.03, -0.012]].forEach(([x, y]) => {
+        const b = new THREE.Mesh(berryGeo, berryMat); b.position.set(x, y, 0.04); g.add(b);
+      });
+    }
+    wreath.add(g);
+  });
+
+  // satin ribbon: hanger loop over the spike, two strands down to a bow at the wreath top
+  const ribbon = new THREE.MeshStandardMaterial({ color: 0xc41230, roughness: 0.3, metalness: 0.15, emissive: 0x2a0006 });
+  const tube = (pts, r = 0.016, closed = false) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, closed), 48, r, 8, closed), ribbon);
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const DROP = 0.34; // spike -> wreath top
+  // loop around the spike (front-to-back), lives in pivot space
+  wreathPivot.add(tube([V(0, 0.05, 0), V(0, 0.03, 0.12), V(0, -0.05, 0.14), V(0, -0.07, 0), V(0, -0.05, -0.14), V(0, 0.03, -0.12)], 0.014, true));
+  // strands from the loop to the bow
+  wreathPivot.add(tube([V(0, -0.06, 0.13), V(-0.02, -0.2, 0.2), V(-0.04, -DROP + 0.02, 0.26)], 0.014));
+  wreathPivot.add(tube([V(0, -0.06, 0.13), V(0.02, -0.2, 0.2), V(0.04, -DROP + 0.02, 0.26)], 0.014));
+  // bow on top of the wreath
+  const bow = new THREE.Group();
+  bow.position.set(0, -DROP, 0.27);
+  const loop = (s) => tube([V(0, 0, 0), V(s * 0.08, 0.06, 0.01), V(s * 0.16, 0.02, 0), V(s * 0.12, -0.05, -0.01), V(s * 0.03, -0.02, 0)], 0.02, true);
+  bow.add(loop(-1), loop(1));
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.038, 14, 10), ribbon); knot.scale.set(1, 0.9, 0.7); bow.add(knot);
+  bow.add(tube([V(-0.02, -0.02, 0), V(-0.06, -0.12, 0.02), V(-0.05, -0.22, 0.01)], 0.018));
+  bow.add(tube([V(0.02, -0.02, 0), V(0.07, -0.11, 0.02), V(0.09, -0.2, 0)], 0.018));
+  wreathPivot.add(bow);
+
+  wreath.position.set(0, -DROP - R + 0.04, 0.26);
+  wreathPivot.add(wreath);
 }
-// top-right corner of the "H" (logo is LOGO_W x LOGO_H, centered on the origin)
-wreath.position.set(LOGO_W * 0.3, LOGO_H * 0.36, DEPTH / 2 + 0.1);
-wreath.scale.setScalar(1.65);
-wreath.rotation.z = -0.18;
-logoGroup.add(wreath);
+// hook point: just below the tip of the H's top-right spike (logo image: x 0.733, y 0.02 from top)
+wreathPivot.position.set((0.728 - 0.5) * LOGO_W, (0.5 - 0.075) * LOGO_H, 0);
+wreathPivot.scale.setScalar(1.25);
+logoGroup.add(wreathPivot);
 
 /* ---------- WINTER: snowfall in three depth layers (far fine / mid / near big soft flakes) ---------- */
 const flake = (() => {
@@ -675,7 +717,8 @@ function tick() {
       L.geo.attributes.position.needsUpdate = true;
     }
   }
-  wreath.rotation.z = -0.18 + Math.sin(t * 1.3) * 0.05;
+  wreathPivot.rotation.z = Math.sin(t * 1.1) * 0.07;   // hanging sway
+  wreath.rotation.z = Math.sin(t * 1.7 + 1.0) * 0.03;
 
   // streaks fly toward the camera
   const sp = (reduce ? 0 : 1) * (6 + warp * 90);
