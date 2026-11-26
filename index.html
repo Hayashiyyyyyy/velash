@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VE:LASH | Break Through The Ordinary</title>
 <meta name="description" content="VE:LASH オフィシャルサイト">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/style.css">
 <script type="importmap">
 { "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
 } }
 </script>
@@ -21,9 +24,9 @@
   <div class="intro-content">
     <div class="intro-grid"></div>
     <div class="intro-logo">
-      <span class="logo-crop c-pink"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
-      <span class="logo-crop c-blue"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
-      <span class="logo-crop c-main"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span>
+      <img class="ilogo c-pink" src="assets/img/logo-white.webp" alt="">
+      <img class="ilogo c-blue" src="assets/img/logo-white.webp" alt="">
+      <img class="ilogo c-main" src="assets/img/logo-white.webp" alt="">
     </div>
     <p class="intro-text" id="intro-text">BREAK THROUGH THE ORDINARY</p>
     <div class="intro-meta"><span>VE:LASH / SYSTEM BOOT</span><span id="intro-count">000</span></div>
@@ -87,14 +90,14 @@
       <a class="section-link" href="collection.html">Collection →</a>
     </div>
     <div class="look-split">
-      <a class="big reveal" href="collection.html"><img src="assets/img/look-street.jpg" alt="VE:LASH ルック ストリート"></a>
+      <a class="big reveal" href="collection.html"><img loading="lazy" decoding="async" src="assets/img/look-street.webp" alt="VE:LASH ルック ストリート"></a>
       <div class="look-side reveal">
         <p class="manifesto">
           Break through the ordinary.<br>
           We don't follow trends,<br>we <em>create</em> them.<br>
           Carry scars like <em>medals</em>.
         </p>
-        <img src="assets/img/look-tee.jpg" alt="Manifesto Tee 着用イメージ">
+        <img loading="lazy" decoding="async" src="assets/img/look-tee.webp" alt="Manifesto Tee 着用イメージ">
       </div>
     </div>
   </section>
@@ -137,12 +140,12 @@ const lite = matchMedia('(max-width: 900px), (pointer: coarse)').matches; // pho
 
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: !lite, alpha: false, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
 } catch (e) {
-  hero.insertAdjacentHTML('afterbegin', '<div style="position:absolute;inset:0;display:grid;place-items:center"><span class="logo-crop" style="width:70%"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span></div>');
+  hero.insertAdjacentHTML('afterbegin', '<div style="position:absolute;inset:0;display:grid;place-items:center"><img src="assets/img/logo-white.webp" alt="" style="width:70%"></div>');
   throw e;
 }
-renderer.setPixelRatio(Math.min(devicePixelRatio, lite ? 1.5 : 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, lite ? 1 : 1.5));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 
@@ -171,7 +174,7 @@ const nebula = new THREE.Mesh(
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
       float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.0-2.0*f);
         return mix(mix(hash(i), hash(i+vec2(1,0)), u.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y); }
-      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ v += a * noise(p); p *= 2.02; a *= 0.5; } return v; }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < ${lite ? 3 : 4}; i++){ v += a * noise(p); p *= 2.02; a *= 0.5; } return v; }
       void main(){
         vec2 p = (vUv - 0.5) * vec2(5.0, 2.8);
         float t = uTime * 0.05;
@@ -231,10 +234,10 @@ tex.colorSpace = THREE.NoColorSpace;
 tex.anisotropy = 8;
 
 // crop region of the 1280x1280 logo image (u: 0.10-0.87, v: 0.29-0.63)
-const CROP = { ox: 0.10, oy: 0.29, sx: 0.77, sy: 0.34 };
+const CROP = { ox: 0, oy: 0, sx: 1, sy: 1 };
 const LOGO_W = 6.4;
-const LOGO_H = LOGO_W * (CROP.sy / CROP.sx);
-const SLICES = lite ? 18 : 28;
+const LOGO_H = LOGO_W * (410 / 966);
+const SLICES = lite ? 10 : 16;
 const DEPTH = 0.42;
 
 const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
@@ -255,8 +258,8 @@ for (let i = 0; i < SLICES; i++) {
       varying vec2 vUv;
       void main() {
         vec2 uv = vec2(${CROP.ox.toFixed(3)}, ${CROP.oy.toFixed(3)}) + vUv * vec2(${CROP.sx.toFixed(3)}, ${CROP.sy.toFixed(3)});
-        float lum = texture2D(map, uv).r;
-        if (lum > 0.5) discard;
+        float alpha = texture2D(map, uv).a;
+        if (alpha < 0.5) discard;
         vec3 col;
         if (uLayer > 0.99) {
           float t = uTime * 0.6;
@@ -294,8 +297,8 @@ const starGeo = new THREE.ExtrudeGeometry(starShape(), {
   depth: 0.18, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.08, bevelSegments: 3,
 });
 starGeo.center();
-const chrome = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 });
-const pinkChrome = new THREE.MeshPhysicalMaterial({ color: 0xff2f8e, metalness: 1, roughness: 0.18, clearcoat: 1, emissive: 0x330014 });
+const chrome = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.12 });
+const pinkChrome = new THREE.MeshStandardMaterial({ color: 0xff2f8e, metalness: 1, roughness: 0.18, emissive: 0x330014 });
 
 const stars = [];
 const starDefs = [
@@ -359,7 +362,7 @@ scene.add(streakLines);
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.45, 0.45, 0.85);
-composer.addPass(bloom);
+if (!lite) composer.addPass(bloom); // bloom is the most expensive pass: desktop only
 const fx = new ShaderPass({
   uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uShift: { value: 0.002 }, uGlitch: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,

@@ -3,11 +3,11 @@
 const IMG = 'assets/img/';
 
 const PRODUCTS = [
-  { id: 'sweat-black', name: 'Graffiti Logo Crew Sweat', color: 'Black', img: 'sweat-black.jpg', price: null, badge: 'NEW', swatch: '#111' },
-  { id: 'sweat-navy',  name: 'Graffiti Logo Crew Sweat', color: 'Navy',  img: 'sweat-navy.jpg',  price: null, badge: 'NEW', swatch: '#1b2340' },
-  { id: 'sweat-pink',  name: 'Graffiti Logo Crew Sweat', color: 'Pink',  img: 'sweat-pink.jpg',  price: null, badge: 'NEW', swatch: '#f2a6c8' },
-  { id: 'tee-manifesto', name: 'Manifesto Tee', color: 'Black', img: 'look-tee.jpg', price: null, swatch: '#111', photo: true },
-  { id: 'tee-heart', name: 'Heart Camo Tee', color: 'White', img: 'look-street.jpg', price: null, swatch: '#f4f4f4', photo: true },
+  { id: 'sweat-black', name: 'Graffiti Logo Crew Sweat', color: 'Black', img: 'sweat-black.webp', price: null, badge: 'NEW', swatch: '#111' },
+  { id: 'sweat-navy',  name: 'Graffiti Logo Crew Sweat', color: 'Navy',  img: 'sweat-navy.webp',  price: null, badge: 'NEW', swatch: '#1b2340' },
+  { id: 'sweat-pink',  name: 'Graffiti Logo Crew Sweat', color: 'Pink',  img: 'sweat-pink.webp',  price: null, badge: 'NEW', swatch: '#f2a6c8' },
+  { id: 'tee-manifesto', name: 'Manifesto Tee', color: 'Black', img: 'look-tee.webp', price: null, swatch: '#111', photo: true },
+  { id: 'tee-heart', name: 'Heart Camo Tee', color: 'White', img: 'look-street.webp', price: null, swatch: '#f4f4f4', photo: true },
 ];
 
 const fmtPrice = (p) => (p == null ? 'PRICE TBA' : '¥' + p.toLocaleString('ja-JP'));
@@ -25,7 +25,7 @@ function renderChrome() {
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a class="brand" href="index.html" aria-label="VE:LASH home"><img class="brand-logo" src="${IMG}logo-white.png" alt="VE:LASH"></a>
+    <a class="brand" href="index.html" aria-label="VE:LASH home"><img class="brand-logo" src="${IMG}logo-white.webp" alt="VE:LASH"></a>
     <nav class="site-nav" id="site-nav">
       ${nav.map(([href, label, key]) => `<a href="${href}"${key === page ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
     </nav>
@@ -115,7 +115,7 @@ function renderCart() {
   wrap.innerHTML = cart.map((l, i) => {
     const p = PRODUCTS.find((x) => x.id === l.id);
     return `<div class="cart-line">
-      <img src="${IMG}${p.img}" alt="">
+      <img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="">
       <div>${p.name}<small>${p.color} / ${l.size} / x${l.qty}</small></div>
       <button data-rm="${i}" aria-label="削除" style="font-family:var(--mono);font-size:11px">REMOVE</button>
     </div>`;
@@ -135,7 +135,7 @@ function renderProductGrid() {
     <article class="product-card reveal">
       <div class="product-media">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-        <div class="tilt"><img src="${IMG}${p.img}" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
+        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
         <div class="shine"></div>
       </div>
       <div class="product-info">
@@ -172,7 +172,7 @@ function initRing() {
   const radius = Math.round((w / 2) / Math.tan(Math.PI / n)) + 60;
   ring.innerHTML = items.map((p, i) => `
     <a class="ring-item" href="shop.html" style="transform:rotateY(${(360 / n) * i}deg) translateZ(${radius}px)">
-      <img src="${IMG}${p.img}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
+      <img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
       <span class="cap"><span>${p.name.toUpperCase()}</span><span>${p.color.toUpperCase()}</span></span>
     </a>`).join('');
 
@@ -189,11 +189,20 @@ function initRing() {
   stage.addEventListener('click', (e) => { if (moved > 6) e.preventDefault(); }, true);
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  (function loop() {
+  visibleLoop(stage, () => {
     if (!dragging) { vel += (0.12 - vel) * 0.02; if (!reduce) rot += vel; }
     ring.style.transform = `translateZ(${-radius}px) rotateX(-6deg) rotateY(${rot}deg)`;
-    requestAnimationFrame(loop);
-  })();
+  });
+}
+
+/* run an animation loop only while the element is on screen */
+function visibleLoop(el, step) {
+  let on = false, raf = 0;
+  const run = () => { step(); raf = requestAnimationFrame(run); };
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !on) { on = true; run(); }
+    else if (!e.isIntersecting && on) { on = false; cancelAnimationFrame(raf); }
+  }).observe(el);
 }
 
 /* ---------- 3D garment viewer (shop) ---------- */
@@ -211,11 +220,10 @@ function initViewer() {
     lx = e.clientX; ly = e.clientY;
   });
   stage.addEventListener('pointerup', () => { dragging = false; });
-  (function loop() {
+  visibleLoop(stage, () => {
     if (!dragging) { vy += (0.25 - vy) * 0.03; ry += vy; rx *= 0.96; }
     garment.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-    requestAnimationFrame(loop);
-  })();
+  });
 
   let size = 'M', current = 'sweat-black';
   document.querySelectorAll('.color-pick button').forEach((b) => b.onclick = () => {
@@ -256,48 +264,25 @@ function initBackdrop() {
   const bd = document.createElement('div');
   bd.className = 'backdrop';
   bd.setAttribute('aria-hidden', 'true');
-  bd.innerHTML = '<i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="grid"></i>';
+  bd.innerHTML = '<i class="blob b1"></i><i class="blob b2"></i><i class="grid"></i>';
   document.body.prepend(bd);
-}
-
-/* ---------- custom cursor ---------- */
-function initCursor() {
-  if (!matchMedia('(pointer: fine)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const ring = document.createElement('div');
-  const dot = document.createElement('div');
-  ring.className = 'cursor-ring'; dot.className = 'cursor-dot';
-  document.body.append(ring, dot);
-  document.body.classList.add('has-cursor');
-  let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y;
-  addEventListener('pointermove', (e) => {
-    x = e.clientX; y = e.clientY;
-    dot.style.transform = `translate(${x}px, ${y}px)`;
-    ring.classList.toggle('hot', !!e.target.closest('a, button, input, select, textarea'));
-    ring.classList.toggle('drag', !!e.target.closest('.ring-stage, .viewer-stage'));
-  });
-  addEventListener('pointerdown', () => ring.classList.add('down'));
-  addEventListener('pointerup', () => ring.classList.remove('down'));
-  document.addEventListener('pointerleave', () => { ring.style.opacity = dot.style.opacity = 0; });
-  document.addEventListener('pointerenter', () => { ring.style.opacity = dot.style.opacity = ''; });
-  (function loop() {
-    rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
-    ring.style.transform = `translate(${rx}px, ${ry}px)`;
-    requestAnimationFrame(loop);
-  })();
 }
 
 /* ---------- huge background words: scroll parallax ---------- */
 function initParallax() {
   const words = [...document.querySelectorAll('.bg-word')];
   if (!words.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let queued = false;
   const update = () => {
+    queued = false;
     words.forEach((w) => {
       const r = w.parentElement.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
       const p = (r.top + r.height / 2 - innerHeight / 2);
-      w.style.transform = `translateX(${p * +w.dataset.speed}px)`;
+      w.style.transform = `translate3d(${p * +w.dataset.speed}px,0,0)`;
     });
   };
-  addEventListener('scroll', update, { passive: true });
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
   update();
 }
 
@@ -315,7 +300,6 @@ function initNewsFilter() {
 
 renderChrome();
 initBackdrop();
-initCursor();
 initParallax();
 initNewsFilter();
 renderProductGrid();
