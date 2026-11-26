@@ -879,3 +879,33 @@ main { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { .backdrop .snow { animation: none; } }
 .backdrop .s1 { opacity: .85; }
 .backdrop .s2 { opacity: .6; }
+
+/* =========================================================
+   WINTER: icy backdrop, icy sub-page floor, heavier snow
+   ========================================================= */
+.backdrop .b1 { background: radial-gradient(circle, rgba(110,200,255,.7) 0%, rgba(110,200,255,0) 65%); }
+.backdrop .b2 { background: radial-gradient(circle, rgba(70,60,255,.7) 0%, rgba(70,60,255,0) 65%); }
+.page-hero::before {
+  background-image:
+    linear-gradient(rgba(140,215,255,.75) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(140,215,255,.75) 2px, transparent 2px);
+}
+.page-hero::after { background: #8fd8ff; box-shadow: 0 0 30px 8px rgba(120,200,255,.45); }
+.page-hero .section-title { text-shadow: 0 0 40px rgba(120,200,255,.3); }
+/* third snow layer: big soft flakes */
+.backdrop::after {
+  content: ''; position: absolute; left: 0; right: 0; top: -880px; height: calc(100% + 880px);
+  background-image:
+    radial-gradient(4px 4px at 50px 80px, rgba(255,255,255,.75), transparent 70%),
+    radial-gradient(3.5px 3.5px at 300px 260px, rgba(255,255,255,.6), transparent 70%),
+    radial-gradient(5px 5px at 380px 40px, rgba(255,255,255,.45), transparent 70%);
+  background-size: 440px 440px;
+  animation: snow-fall 14s linear infinite; will-change: transform;
+  filter: blur(.6px);
+}
+.nav-grid {
+  background-image:
+    linear-gradient(rgba(140,215,255,.55) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgba(140,215,255,.55) 1.5px, transparent 1.5px);
+}
+@media (prefers-reduced-motion: reduce) { .backdrop::after { animation: none; } }
