@@ -44,21 +44,26 @@
           the <span class="pink">ordinary</span>
         </h1>
         <div class="hero-meta">
-          <strong>MOVE CURSOR</strong> TO ROTATE<br>
+          <strong>MOVE</strong> TO ROTATE / <strong>HOLD</strong> TO WARP<br>
           <span class="scroll-hint">SCROLL ↓</span>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="marquee" aria-hidden="true">
-    <div class="marquee-track">
-      <span>VE:LASH</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span>Pressure made me priceless</span><span class="star">✶</span>
-      <span>VE:LASH</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span>Pressure made me priceless</span><span class="star">✶</span>
-    </div>
+  <div class="tapes" aria-hidden="true">
+    <div class="tape tape-a"><div class="marquee-track">
+      <span>VE:LASH</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
+      <span>VE:LASH</span><span class="star">✶</span><span>We don't follow trends</span><span class="star">✶</span><span>We create them</span><span class="star">✶</span><span>Pressure made me priceless</span><span class="star">✶</span>
+    </div></div>
+    <div class="tape tape-b"><div class="marquee-track">
+      <span>Break through the ordinary</span><span class="star">///</span><span>Collection 01</span><span class="star">///</span><span>Carry scars like medals</span><span class="star">///</span>
+      <span>Break through the ordinary</span><span class="star">///</span><span>Collection 01</span><span class="star">///</span><span>Carry scars like medals</span><span class="star">///</span>
+    </div></div>
   </div>
 
   <section class="section">
+    <div class="bg-word" data-speed="0.25" aria-hidden="true">NEW DROP</div>
     <div class="section-head reveal">
       <div>
         <p class="section-label">01 / New Arrivals</p>
@@ -73,10 +78,11 @@
   </section>
 
   <section class="section">
+    <div class="bg-word right" data-speed="-0.2" aria-hidden="true">MANIFESTO</div>
     <div class="section-head reveal">
       <div>
         <p class="section-label">02 / Lookbook</p>
-        <h2 class="section-title">Street<br>Manifesto</h2>
+        <h2 class="section-title glitch" data-text="Street Manifesto">Street<br>Manifesto</h2>
       </div>
       <a class="section-link" href="collection.html">Collection →</a>
     </div>
@@ -94,17 +100,18 @@
   </section>
 
   <section class="section">
+    <div class="bg-word" data-speed="0.2" aria-hidden="true">NEWS</div>
     <div class="section-head reveal">
       <div>
         <p class="section-label">03 / News</p>
         <h2 class="section-title">News</h2>
       </div>
-      <a class="section-link" href="contact.html">All news →</a>
+      <a class="section-link" href="news.html">All news →</a>
     </div>
     <div class="news-list reveal">
-      <a class="news-item" href="contact.html"><span class="news-date">2026.11.27</span><span class="news-cat">RELEASE</span><span class="news-title">Graffiti Logo Crew Sweat 3色同時リリース（ダミー）</span><span class="news-arrow">→</span></a>
-      <a class="news-item" href="contact.html"><span class="news-date">2026.11.20</span><span class="news-cat">LOOKBOOK</span><span class="news-title">Collection 01 ルックブック公開（ダミー）</span><span class="news-arrow">→</span></a>
-      <a class="news-item" href="contact.html"><span class="news-date">2026.11.10</span><span class="news-cat">INFO</span><span class="news-title">オフィシャルサイトをオープンしました（ダミー）</span><span class="news-arrow">→</span></a>
+      <a class="news-item" href="news.html"><span class="news-date">2026.11.27</span><span class="news-cat">RELEASE</span><span class="news-title">Graffiti Logo Crew Sweat 3色同時リリース（ダミー）</span><span class="news-arrow">→</span></a>
+      <a class="news-item" href="news.html"><span class="news-date">2026.11.20</span><span class="news-cat">LOOKBOOK</span><span class="news-title">Collection 01 ルックブック公開（ダミー）</span><span class="news-arrow">→</span></a>
+      <a class="news-item" href="news.html"><span class="news-date">2026.11.10</span><span class="news-cat">INFO</span><span class="news-title">オフィシャルサイトをオープンしました（ダミー）</span><span class="news-arrow">→</span></a>
     </div>
   </section>
 </main>
@@ -112,15 +119,15 @@
 <script src="assets/js/logo-data.js"></script>
 <script type="module">
 /* VE:LASH hero - Three.js scene
-   - brand logo extruded as stacked shader slices (chrome / iridescent face)
-   - floating chrome six-point stars (motif from the Manifesto Tee)
-   - wireframe core + particle field, bloom post-processing
+   logo (stacked shader slices) / nebula background / neon grid floor /
+   light streaks (hold to warp) / chrome stars / bloom + RGB shift + grain + glitch
 */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const canvas = document.getElementById('hero-canvas');
@@ -139,14 +146,80 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07070a);
-scene.fog = new THREE.FogExp2(0x07070a, 0.07);
+scene.background = new THREE.Color(0x030306);
+scene.fog = new THREE.FogExp2(0x05040a, 0.045);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 camera.position.set(0, 0, 9);
+
+const shared = { uTime: { value: 0 }, uWarp: { value: 0 } };
+
+/* ---------- nebula background ---------- */
+const nebula = new THREE.Mesh(
+  new THREE.PlaneGeometry(160, 90),
+  new THREE.ShaderMaterial({
+    uniforms: shared,
+    depthWrite: false,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: /* glsl */`
+      uniform float uTime; uniform float uWarp;
+      varying vec2 vUv;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.0-2.0*f);
+        return mix(mix(hash(i), hash(i+vec2(1,0)), u.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y); }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ v += a * noise(p); p *= 2.02; a *= 0.5; } return v; }
+      void main(){
+        vec2 p = (vUv - 0.5) * vec2(5.0, 2.8);
+        float t = uTime * 0.05;
+        vec2 q = vec2(fbm(p + t), fbm(p - t + 3.1));
+        float n = fbm(p + 2.2 * q + vec2(t * 2.0, -t));
+        vec3 pink = vec3(1.0, 0.12, 0.5);
+        vec3 blue = vec3(0.22, 0.2, 1.0);
+        vec3 col = mix(blue, pink, smoothstep(0.35, 0.75, q.x));
+        float m = smoothstep(0.45, 0.95, n);
+        col *= m * (0.55 + uWarp * 0.6);
+        // horizon glow
+        col += pink * 0.35 * exp(-abs(vUv.y - 0.42) * 14.0);
+        // stars
+        vec2 g = vUv * vec2(320.0, 180.0);
+        float s = step(0.997, hash(floor(g))) * (0.5 + 0.5 * sin(uTime * 3.0 + hash(floor(g)) * 40.0));
+        col += vec3(s);
+        gl_FragColor = vec4(col, 1.0);
+      }`,
+  })
+);
+nebula.position.set(0, 4, -60);
+scene.add(nebula);
+
+/* ---------- neon grid floor ---------- */
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(220, 140),
+  new THREE.ShaderMaterial({
+    uniforms: shared,
+    transparent: true,
+    depthWrite: false,
+    vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: /* glsl */`
+      uniform float uTime; uniform float uWarp;
+      varying vec3 vW;
+      float line(float x, float w){ float d = abs(fract(x) - 0.5); float fw = fwidth(x); return 1.0 - smoothstep(w * fw, (w + 1.5) * fw, 0.5 - d); }
+      void main(){
+        float speed = 1.2 + uWarp * 14.0;
+        vec2 g = vec2(vW.x * 0.5, (vW.z + uTime * speed) * 0.5);
+        float l = max(line(g.x, 0.6), line(g.y, 0.6));
+        float dist = length(vW.xz - vec2(0.0, 6.0));
+        float fade = 1.0 - smoothstep(6.0, 70.0, dist);
+        vec3 col = mix(vec3(1.0, 0.18, 0.56), vec3(0.45, 0.4, 1.0), smoothstep(10.0, 60.0, dist));
+        gl_FragColor = vec4(col * 1.3, l * fade * 0.55);
+      }`,
+  })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -3.6;
+scene.add(floor);
 
 /* ---------- logo (stacked slices) ---------- */
 const logoGroup = new THREE.Group();
@@ -164,35 +237,27 @@ const SLICES = 28;
 const DEPTH = 0.42;
 
 const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
-const uniformsShared = { uTime: { value: 0 }, map: { value: tex } };
+const logoUniforms = { uTime: shared.uTime, map: { value: tex } };
 
 for (let i = 0; i < SLICES; i++) {
   const layer = i / (SLICES - 1); // 0 = back, 1 = front
   const mat = new THREE.ShaderMaterial({
-    uniforms: { ...uniformsShared, uLayer: { value: layer } },
+    uniforms: { ...logoUniforms, uLayer: { value: layer } },
     side: THREE.DoubleSide,
     vertexShader: /* glsl */`
       varying vec2 vUv;
-      varying vec3 vWorld;
-      void main() {
-        vUv = uv;
-        vec4 w = modelMatrix * vec4(position, 1.0);
-        vWorld = w.xyz;
-        gl_Position = projectionMatrix * viewMatrix * w;
-      }`,
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: /* glsl */`
       uniform sampler2D map;
       uniform float uTime;
       uniform float uLayer;
       varying vec2 vUv;
-      varying vec3 vWorld;
       void main() {
         vec2 uv = vec2(${CROP.ox.toFixed(3)}, ${CROP.oy.toFixed(3)}) + vUv * vec2(${CROP.sx.toFixed(3)}, ${CROP.sy.toFixed(3)});
         float lum = texture2D(map, uv).r;
         if (lum > 0.5) discard;
         vec3 col;
         if (uLayer > 0.99) {
-          // chrome face with moving iridescent bands
           float t = uTime * 0.6;
           float band = sin(vUv.y * 9.0 - vUv.x * 3.0 + t * 2.0) * 0.5 + 0.5;
           float sweep = smoothstep(0.0, 0.08, abs(fract(vUv.x * 0.6 - t * 0.25) - 0.5) - 0.42);
@@ -201,9 +266,8 @@ for (let i = 0; i < SLICES; i++) {
           col = mix(chrome, iri, 0.22);
           col += (1.0 - sweep) * 0.6;
         } else {
-          // extrusion side: dark metal fading to hot pink at the back
           vec3 pink = vec3(1.0, 0.18, 0.56);
-          col = mix(pink * 0.9, vec3(0.08, 0.08, 0.11), smoothstep(0.0, 0.7, uLayer));
+          col = mix(pink * 1.2, vec3(0.08, 0.08, 0.11), smoothstep(0.0, 0.7, uLayer));
         }
         gl_FragColor = vec4(col, 1.0);
       }`,
@@ -247,50 +311,101 @@ starDefs.forEach(([x, y, z, s, mat], i) => {
   stars.push(m);
 });
 
-/* ---------- wireframe core ---------- */
+// colored lights orbiting so the chrome picks up pink / blue
+const pinkLight = new THREE.PointLight(0xff2f8e, 60, 30);
+const blueLight = new THREE.PointLight(0x5a5cff, 60, 30);
+scene.add(pinkLight, blueLight);
+
+/* ---------- wireframe core + ring ---------- */
 const core = new THREE.Mesh(
   new THREE.IcosahedronGeometry(3.2, 1),
-  new THREE.MeshBasicMaterial({ color: 0x7d8cff, wireframe: true, transparent: true, opacity: 0.12 })
+  new THREE.MeshBasicMaterial({ color: 0x7d8cff, wireframe: true, transparent: true, opacity: 0.14 })
 );
 core.position.z = -3;
 scene.add(core);
 
-const ring = new THREE.Mesh(
-  new THREE.TorusGeometry(4.6, 0.012, 8, 200),
-  new THREE.MeshBasicMaterial({ color: 0xff2f8e })
-);
+const ring = new THREE.Mesh(new THREE.TorusGeometry(4.6, 0.012, 8, 200), new THREE.MeshBasicMaterial({ color: 0xff2f8e }));
 ring.rotation.x = Math.PI / 2.3;
 ring.position.z = -1.5;
 scene.add(ring);
+const ring2 = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.008, 8, 200), new THREE.MeshBasicMaterial({ color: 0x7d8cff }));
+ring2.rotation.set(Math.PI / 1.8, 0.4, 0);
+ring2.position.z = -2;
+scene.add(ring2);
 
-/* ---------- particles ---------- */
-const PCOUNT = 1400;
-const pPos = new Float32Array(PCOUNT * 3);
-for (let i = 0; i < PCOUNT; i++) {
-  pPos[i * 3] = (Math.random() - 0.5) * 30;
-  pPos[i * 3 + 1] = (Math.random() - 0.5) * 18;
-  pPos[i * 3 + 2] = -Math.random() * 20 + 3;
+/* ---------- light streaks ---------- */
+const SCOUNT = 320;
+const sPos = new Float32Array(SCOUNT * 6);
+const sCol = new Float32Array(SCOUNT * 6);
+const streaks = [];
+const Z_FAR = -60, Z_NEAR = 10;
+for (let i = 0; i < SCOUNT; i++) {
+  const a = Math.random() * Math.PI * 2;
+  const r = 3.5 + Math.random() * 14;
+  const pink = Math.random() < 0.3;
+  const c = pink ? [1, 0.2, 0.6] : (Math.random() < 0.3 ? [0.5, 0.5, 1] : [1, 1, 1]);
+  const b = 0.3 + Math.random() * 0.7;
+  streaks.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * 0.6, z: Z_FAR + Math.random() * (Z_NEAR - Z_FAR), len: 0.4 + Math.random() * 1.2, v: 0.6 + Math.random() * 0.8 });
+  sCol.set([c[0] * b, c[1] * b, c[2] * b, 0, 0, 0], i * 6); // tail fades to black (additive)
 }
-const pGeo = new THREE.BufferGeometry();
-pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xcfd3ff, size: 0.025, transparent: true, opacity: 0.7 }));
-scene.add(particles);
+const sGeo = new THREE.BufferGeometry();
+sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+sGeo.setAttribute('color', new THREE.BufferAttribute(sCol, 3));
+const streakLines = new THREE.LineSegments(sGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+scene.add(streakLines);
 
 /* ---------- post ---------- */
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.4, 0.9);
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.45, 0.45, 0.85);
 composer.addPass(bloom);
+const fx = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uShift: { value: 0.002 }, uGlitch: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse; uniform float uTime; uniform float uShift; uniform float uGlitch; uniform vec2 uRes;
+    varying vec2 vUv;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+    void main(){
+      vec2 uv = vUv;
+      // glitch: horizontal slice displacement
+      if (uGlitch > 0.0) {
+        float row = floor(uv.y * 28.0);
+        float h = hash(vec2(row, floor(uTime * 24.0)));
+        if (h > 0.7) uv.x += (h - 0.85) * 0.12 * uGlitch;
+      }
+      vec2 dir = uv - 0.5;
+      float s = uShift + uGlitch * 0.012;
+      vec3 col;
+      col.r = texture2D(tDiffuse, uv + dir * s).r;
+      col.g = texture2D(tDiffuse, uv).g;
+      col.b = texture2D(tDiffuse, uv - dir * s).b;
+      // scanlines + grain + vignette
+      col *= 0.96 + 0.04 * sin(uv.y * uRes.y * 1.6);
+      col += (hash(uv * uRes + uTime) - 0.5) * 0.035;
+      col *= smoothstep(1.15, 0.35, length(dir * vec2(1.2, 1.0)));
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+});
+composer.addPass(fx);
 composer.addPass(new OutputPass());
 
 /* ---------- interaction ---------- */
 const mouse = new THREE.Vector2(), target = new THREE.Vector2();
+let mouseVel = 0;
 addEventListener('pointermove', (e) => {
-  target.x = (e.clientX / innerWidth) * 2 - 1;
-  target.y = (e.clientY / innerHeight) * 2 - 1;
+  const nx = (e.clientX / innerWidth) * 2 - 1, ny = (e.clientY / innerHeight) * 2 - 1;
+  mouseVel = Math.min(1, mouseVel + Math.hypot(nx - target.x, ny - target.y) * 2);
+  target.set(nx, ny);
 });
 let scrollP = 0;
 addEventListener('scroll', () => { scrollP = Math.min(1, scrollY / innerHeight); }, { passive: true });
+
+// hold to warp
+let warpTarget = 0;
+hero.addEventListener('pointerdown', (e) => { if (!e.target.closest('a,button')) warpTarget = 1; });
+addEventListener('pointerup', () => { warpTarget = 0; });
+addEventListener('pointercancel', () => { warpTarget = 0; });
 
 let baseZ = 9;
 // opening: logo flies in from the distance after the intro screen
@@ -303,8 +418,8 @@ function resize() {
   const w = hero.clientWidth, h = hero.clientHeight;
   renderer.setSize(w, h, false);
   composer.setSize(w, h);
+  fx.uniforms.uRes.value.set(w, h);
   camera.aspect = w / h;
-  // keep the logo fitting on narrow screens
   baseZ = w / h < 1 ? 9 / (w / h) * 0.75 : 9;
   camera.updateProjectionMatrix();
 }
@@ -315,34 +430,68 @@ resize();
 const clock = new THREE.Clock();
 let visible = true;
 new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(hero);
+let warp = 0, nextGlitch = 3, glitch = 0, last = 0;
 
 function tick() {
   requestAnimationFrame(tick);
   if (!visible) return;
-  const t = reduce ? 0 : clock.getElapsedTime();
-  uniformsShared.uTime.value = t;
+  const now = clock.getElapsedTime();
+  const dt = Math.min(0.05, now - last); last = now;
+  const t = reduce ? 0 : now;
 
-  mouse.lerp(target, 0.06);
   const k = introStart === null ? 0 : (reduce ? 1 : Math.min(1, (performance.now() - introStart) / 2200));
   const ease = 1 - Math.pow(1 - k, 4);
+
+  // warp: user hold + automatic burst while the logo flies in
+  const introWarp = introStart === null ? 0.6 : (1 - ease) * 1.0;
+  warp += (Math.max(warpTarget, introWarp) - warp) * 0.06;
+  shared.uTime.value = t;
+  shared.uWarp.value = warp;
+
+  // random glitch bursts
+  if (!reduce && now > nextGlitch) { glitch = 1; nextGlitch = now + 3 + Math.random() * 4; }
+  glitch = Math.max(0, glitch - dt * 6);
+  mouseVel *= 0.9;
+  fx.uniforms.uTime.value = now;
+  fx.uniforms.uGlitch.value = glitch;
+  fx.uniforms.uShift.value = 0.002 + mouseVel * 0.01 + warp * 0.012;
+
+  mouse.lerp(target, 0.06);
   logoGroup.scale.setScalar(0.001 + ease * 0.999);
   logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 + (1 - ease) * Math.PI * 2;
   logoGroup.rotation.x = mouse.y * 0.3 + scrollP * 0.6;
-  logoGroup.position.y = 0.7 + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5;
+  logoGroup.position.y = 0.7 + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5 + (Math.random() - 0.5) * 0.04 * warp;
 
   stars.forEach((s) => {
     const { base, speed, phase } = s.userData;
-    s.rotation.y = t * speed + phase;
+    s.rotation.y = t * speed * (1 + warp * 3) + phase;
     s.rotation.x = Math.sin(t * 0.4 + phase) * 0.6;
     s.position.y = base.y + Math.sin(t * speed + phase) * 0.25;
     s.position.x = base.x - mouse.x * 0.3 * (1 - base.z / 6);
   });
 
+  pinkLight.position.set(Math.cos(t * 0.7) * 7, 2, Math.sin(t * 0.7) * 7);
+  blueLight.position.set(Math.cos(t * 0.7 + Math.PI) * 7, -2, Math.sin(t * 0.7 + Math.PI) * 7);
+
   core.rotation.x = t * 0.08;
   core.rotation.y = t * 0.12;
   ring.rotation.z = t * 0.2;
-  particles.rotation.y = t * 0.01 + mouse.x * 0.05;
+  ring2.rotation.z = -t * 0.15;
 
+  // streaks fly toward the camera
+  const sp = (reduce ? 0 : 1) * (6 + warp * 90);
+  for (let i = 0; i < SCOUNT; i++) {
+    const s = streaks[i];
+    s.z += sp * s.v * dt;
+    if (s.z > Z_NEAR) s.z = Z_FAR;
+    const len = s.len * (1 + warp * 14);
+    sPos[i * 6] = s.x; sPos[i * 6 + 1] = s.y; sPos[i * 6 + 2] = s.z;
+    sPos[i * 6 + 3] = s.x; sPos[i * 6 + 4] = s.y; sPos[i * 6 + 5] = s.z - len;
+  }
+  sGeo.attributes.position.needsUpdate = true;
+
+  camera.fov = 40 + warp * 18;
+  camera.updateProjectionMatrix();
   camera.position.z = baseZ + (1 - ease) * 10;
   camera.position.x = mouse.x * 0.4;
   camera.position.y = -mouse.y * 0.25;

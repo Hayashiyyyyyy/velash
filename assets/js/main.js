@@ -19,12 +19,13 @@ function renderChrome() {
     ['index.html', 'Home', 'home'],
     ['collection.html', 'Collection', 'collection'],
     ['shop.html', 'Shop', 'shop'],
-    ['contact.html', 'News / Contact', 'contact'],
+    ['news.html', 'News', 'news'],
+    ['contact.html', 'Contact', 'contact'],
   ];
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a class="brand" href="index.html" aria-label="VE:LASH home"><span class="logo-crop"><img class="logo-img" src="${IMG}logo.jpg" alt="VE:LASH"></span></a>
+    <a class="brand" href="index.html" aria-label="VE:LASH home"><img class="brand-logo" src="${IMG}logo-white.png" alt="VE:LASH"></a>
     <nav class="site-nav" id="site-nav">
       ${nav.map(([href, label, key]) => `<a href="${href}"${key === page ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
     </nav>
@@ -46,7 +47,7 @@ function renderChrome() {
         </form>
       </div>
       <div class="footer-nav">
-        <ul><li>SITE</li><li><a href="index.html">Home</a></li><li><a href="collection.html">Collection</a></li><li><a href="shop.html">Shop</a></li><li><a href="contact.html">News / Contact</a></li></ul>
+        <ul><li>SITE</li><li><a href="index.html">Home</a></li><li><a href="collection.html">Collection</a></li><li><a href="shop.html">Shop</a></li><li><a href="news.html">News</a></li><li><a href="contact.html">Contact</a></li></ul>
         <ul><li>SOCIAL</li><li><a href="#">Instagram</a></li><li><a href="#">TikTok</a></li><li><a href="#">X</a></li></ul>
       </div>
     </div>    <div class="footer-bottom"><span>&copy; VE:LASH</span><span>BREAK THROUGH THE ORDINARY</span></div>`;
@@ -247,7 +248,73 @@ function initForm() {
   });
 }
 
+/* ---------- ambient background layer ---------- */
+function initBackdrop() {
+  const bd = document.createElement('div');
+  bd.className = 'backdrop';
+  bd.setAttribute('aria-hidden', 'true');
+  bd.innerHTML = '<i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="grid"></i>';
+  document.body.prepend(bd);
+}
+
+/* ---------- custom cursor ---------- */
+function initCursor() {
+  if (!matchMedia('(pointer: fine)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ring = document.createElement('div');
+  const dot = document.createElement('div');
+  ring.className = 'cursor-ring'; dot.className = 'cursor-dot';
+  document.body.append(ring, dot);
+  document.body.classList.add('has-cursor');
+  let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y;
+  addEventListener('pointermove', (e) => {
+    x = e.clientX; y = e.clientY;
+    dot.style.transform = `translate(${x}px, ${y}px)`;
+    ring.classList.toggle('hot', !!e.target.closest('a, button, input, select, textarea'));
+    ring.classList.toggle('drag', !!e.target.closest('.ring-stage, .viewer-stage'));
+  });
+  addEventListener('pointerdown', () => ring.classList.add('down'));
+  addEventListener('pointerup', () => ring.classList.remove('down'));
+  document.addEventListener('pointerleave', () => { ring.style.opacity = dot.style.opacity = 0; });
+  document.addEventListener('pointerenter', () => { ring.style.opacity = dot.style.opacity = ''; });
+  (function loop() {
+    rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ---------- huge background words: scroll parallax ---------- */
+function initParallax() {
+  const words = [...document.querySelectorAll('.bg-word')];
+  if (!words.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const update = () => {
+    words.forEach((w) => {
+      const r = w.parentElement.getBoundingClientRect();
+      const p = (r.top + r.height / 2 - innerHeight / 2);
+      w.style.transform = `translateX(${p * +w.dataset.speed}px)`;
+    });
+  };
+  addEventListener('scroll', update, { passive: true });
+  update();
+}
+
+/* ---------- news category filter ---------- */
+function initNewsFilter() {
+  const btns = document.querySelectorAll('.news-filter button');
+  if (!btns.length) return;
+  btns.forEach((b) => b.onclick = () => {
+    btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('#news-list .news-item').forEach((it) => {
+      it.hidden = b.dataset.cat !== 'ALL' && it.dataset.cat !== b.dataset.cat;
+    });
+  });
+}
+
 renderChrome();
+initBackdrop();
+initCursor();
+initParallax();
+initNewsFilter();
 renderProductGrid();
 renderCart();
 initRing();
