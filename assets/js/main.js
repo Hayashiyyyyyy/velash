@@ -34,6 +34,9 @@ function renderChrome() {
       <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">MENU</button>
     </div>`;
   document.body.prepend(header);
+  const onScroll = () => header.classList.toggle("scrolled", scrollY > 40);
+  addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 
   const footer = document.createElement('footer');
   footer.className = 'site-footer';

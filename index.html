@@ -44,7 +44,7 @@
           the <span class="pink">ordinary</span>
         </h1>
         <div class="hero-meta">
-          <strong>MOVE</strong> TO ROTATE / <strong>HOLD</strong> TO WARP<br>
+          <span class="hint-mouse"><strong>MOVE</strong> TO ROTATE / <strong>HOLD</strong> TO WARP</span><span class="hint-touch"><strong>TOUCH &amp; HOLD</strong> TO WARP</span><br>
           <span class="scroll-hint">SCROLL ↓</span>
         </div>
       </div>
@@ -74,7 +74,7 @@
     <div class="ring-stage" id="ring-stage">
       <div class="ring"></div>
     </div>
-    <p class="ring-hint">DRAG TO SPIN</p>
+    <p class="ring-hint"><span class="hint-mouse">DRAG TO SPIN</span><span class="hint-touch">SWIPE TO SPIN</span></p>
   </section>
 
   <section class="section">
@@ -133,15 +133,16 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const canvas = document.getElementById('hero-canvas');
 const hero = canvas.parentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lite = matchMedia('(max-width: 900px), (pointer: coarse)').matches; // phones: lighter rendering
 
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: !lite, alpha: false, powerPreference: 'high-performance' });
 } catch (e) {
   hero.insertAdjacentHTML('afterbegin', '<div style="position:absolute;inset:0;display:grid;place-items:center"><span class="logo-crop" style="width:70%"><img class="logo-img" src="assets/img/logo.jpg" alt=""></span></div>');
   throw e;
 }
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, lite ? 1.5 : 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 
@@ -233,7 +234,7 @@ tex.anisotropy = 8;
 const CROP = { ox: 0.10, oy: 0.29, sx: 0.77, sy: 0.34 };
 const LOGO_W = 6.4;
 const LOGO_H = LOGO_W * (CROP.sy / CROP.sx);
-const SLICES = 28;
+const SLICES = lite ? 18 : 28;
 const DEPTH = 0.42;
 
 const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
@@ -334,7 +335,7 @@ ring2.position.z = -2;
 scene.add(ring2);
 
 /* ---------- light streaks ---------- */
-const SCOUNT = 320;
+const SCOUNT = lite ? 160 : 320;
 const sPos = new Float32Array(SCOUNT * 6);
 const sCol = new Float32Array(SCOUNT * 6);
 const streaks = [];
