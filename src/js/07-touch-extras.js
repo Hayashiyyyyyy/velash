@@ -30,26 +30,6 @@
     upd();
   });
 
-  /* ---------- hold-to-warp: light rings spread from the finger ---------- */
-  const hero = document.querySelector('.hero');
-  if (hero && !reduce) {
-    let timer = 0;
-    hero.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('a,button')) return;
-      buzz(10);
-      const spawn = () => {
-        const r = document.createElement('span');
-        r.className = 'warp-ring';
-        r.style.left = `${e.clientX}px`; r.style.top = `${e.clientY - hero.getBoundingClientRect().top}px`;
-        hero.append(r);
-        r.addEventListener('animationend', () => r.remove());
-      };
-      spawn(); clearInterval(timer); timer = setInterval(spawn, 260);
-    });
-    const stop = () => clearInterval(timer);
-    addEventListener('pointerup', stop); addEventListener('pointercancel', stop);
-  }
-
   /* ---------- light haptics on taps ---------- */
   document.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.add-btn, .section-link, .t-buy, .submit-btn, .fab-store, .news-filter button, .menu-btn, .size-pick button, .color-pick button')) buzz(6);

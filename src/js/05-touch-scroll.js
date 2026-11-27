@@ -61,21 +61,6 @@
     flow();
   }
 
-  /* ---------- tap ripple ---------- */
-  document.addEventListener('pointerdown', (e) => {
-    const b = e.target.closest('.add-btn, .section-link, .t-buy, .submit-btn, .fab-store, .news-filter button, .menu-btn, .cart-btn, .size-pick button, .newsletter button');
-    if (!b) return;
-    const r = b.getBoundingClientRect();
-    const s = Math.max(r.width, r.height) * 2.2;
-    const dot = document.createElement('span');
-    dot.className = 'ripple';
-    dot.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
-    if (getComputedStyle(b).position === 'static') b.style.position = 'relative';
-    b.style.overflow = 'hidden';
-    b.append(dot);
-    dot.addEventListener('animationend', () => dot.remove());
-  }, { passive: true });
-
   /* ---------- device tilt steers the 3D logo (Android; no permission prompt) ---------- */
   if (document.getElementById('hero-canvas') && typeof DeviceOrientationEvent !== 'undefined' && !DeviceOrientationEvent.requestPermission) {
     let base = null, pending = null;

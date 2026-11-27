@@ -94,3 +94,9 @@ p { text-wrap: pretty; }
 
 /* ---------- shop viewer label ---------- */
 .viewer-label { font-size: 11px !important; color: #777 !important; text-transform: none !important; }
+
+/* intro screen: calmer, no glitch jitter on the logo */
+.intro-logo .c-main { animation: none !important; }
+.intro-logo { animation: intro-logo-in 1.2s cubic-bezier(.16, 1, .3, 1) both !important; }
+@keyframes intro-logo-in { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.ripple, .warp-ring { display: none !important; }

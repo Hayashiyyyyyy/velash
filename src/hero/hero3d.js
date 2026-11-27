@@ -160,7 +160,7 @@ const SLICES = lite ? 26 : 44;   // dense layers -> smooth, solid-looking sides
 const DEPTH = 0.42;
 
 const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
-const logoUniforms = { uTime: shared.uTime, map: { value: tex }, hmap: { value: htex }, uLift: { value: 0 } };
+const logoUniforms = { uTime: shared.uTime, map: { value: tex }, hmap: { value: htex }, uLift: { value: 0 }, uReveal: { value: 0 }, uSweep: { value: -1 } };
 
 for (let i = 0; i < SLICES; i++) {
   const layer = i / (SLICES - 1); // 0 = back, 1 = front
@@ -185,6 +185,8 @@ for (let i = 0; i < SLICES; i++) {
       uniform float uTime;
       uniform float uLayer;
       uniform float uLift;
+      uniform float uReveal;   // 0..1 light-scan reveal (bottom -> top)
+      uniform float uSweep;    // x position of the finishing highlight sweep
       varying vec2 vUv;
       varying vec3 vT, vB, vN, vView;
       // studio environment seen in the metal (view space): soft-box strips, dark floor, faint brand-pink bounce
@@ -201,6 +203,10 @@ for (let i = 0; i < SLICES; i++) {
         vec2 uv = vUv;
         float alpha = texture2D(map, uv).a;
         if (alpha < 0.5) discard;
+        // cinematic reveal: deeper layers trail slightly behind the scan line, so the extrusion builds back-to-front
+        float edge = uReveal * 1.25 - 0.12 - (1.0 - uLayer) * 0.1;
+        float yy = vUv.y + (vUv.x - 0.5) * 0.18;
+        if (yy > edge) discard;
         vec3 col;
         if (uLayer > 0.99) {
           // bevelled metal face: normal from the softened silhouette, reflected into the studio environment
@@ -234,6 +240,10 @@ for (let i = 0; i < SLICES; i++) {
         float shade = (1.0 - smoothstep(0.35, 0.65, below)) * (1.0 - cap);
         col = mix(col, vec3(0.42, 0.58, 0.8), shade * 0.7 * (1.0 - uLift));  // soft blue shadow under the snow (off on phones)
         col = mix(col, snowCol, cap);
+        // bright scan line at the reveal edge + one finishing highlight sweep across the face
+        float scan = smoothstep(0.045, 0.0, edge - yy) * step(uReveal, 0.999);
+        col += vec3(1.0, 0.96, 0.98) * scan * (0.6 + 1.4 * uLayer);
+        col += vec3(1.0) * 0.9 * exp(-pow((vUv.x - uSweep - (vUv.y - 0.5) * 0.4) * 7.0, 2.0)) * step(0.99, uLayer);
         gl_FragColor = vec4(col, 1.0);
       }`,
   });
@@ -594,11 +604,13 @@ function tick() {
   const dt = Math.min(0.05, now - last); last = now;
   const t = reduce ? 0 : now;
 
-  const k = introStart === null ? 0 : (reduce ? 1 : Math.min(1, (performance.now() - introStart) / 2200));
-  const ease = 1 - Math.pow(1 - k, 4);
+  const k = introStart === null ? 0 : (reduce ? 1 : Math.min(1, (performance.now() - introStart) / 3200));
+  const ease = k === 1 ? 1 : 1 - Math.pow(2, -10 * k);           // expo-out: fast start, long graceful settle
+  logoUniforms.uReveal.value = Math.min(1, k / 0.55);            // light scan finishes in the first ~1.8s
+  logoUniforms.uSweep.value = -0.4 + Math.max(0, (k - 0.5) / 0.5) * 1.9;
 
   // warp: user hold + automatic burst while the logo flies in
-  const introWarp = introStart === null ? 0.6 : (1 - ease) * 1.0;
+  const introWarp = introStart === null ? 0.25 : (1 - ease) * 0.35;
   warp += (Math.max(warpTarget, introWarp) - warp) * 0.06;
   shared.uTime.value = t;
   shared.uWarp.value = warp;
@@ -612,8 +624,9 @@ function tick() {
   fx.uniforms.uShift.value = 0.0004 + warp * 0.006;   // colour fringing only while warping
 
   mouse.lerp(target, 0.06);
-  logoGroup.scale.setScalar((0.001 + ease * 0.999) * logoScale);
-  logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 + (1 - ease) * Math.PI * 2;
+  logoGroup.scale.setScalar((0.9 + ease * 0.1) * logoScale);
+  wreathPivot.visible = logoUniforms.uReveal.value > 0.92;       // wreath appears once the logo has been revealed
+  logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 * ease - (1 - ease) * 0.85;   // turns in from an angle
   const hs = scrollP * scrollP * (3 - 2 * scrollP);            // eased scroll progress
   logoGroup.rotation.x = mouse.y * 0.3 - hs * 0.35;
   logoGroup.position.y = logoY * (1 - hs) + Math.sin(t * 0.8) * 0.08 + (Math.random() - 0.5) * 0.04 * warp;
@@ -670,7 +683,7 @@ function tick() {
   camera.fov = 40 + warp * 18;
   camera.updateProjectionMatrix();
   // scroll: the camera dives toward the logo and through it
-  camera.position.z = baseZ + (1 - ease) * 10;   // no scroll zoom
+  camera.position.z = baseZ + (1 - ease) * 2.6;   // slow dolly-in on entrance (no scroll zoom)
   camera.position.x = mouse.x * 0.4;
   camera.position.y = -mouse.y * 0.25;
   camera.lookAt(0, 0.3 * (1 - hs), 0);
