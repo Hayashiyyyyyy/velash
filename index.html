@@ -323,9 +323,9 @@ for (let i = 0; i < SLICES; i++) {
   logoGroup.add(m);
 }
 
-/* ---------- CHRISTMAS: fir wreath hanging from the top-right spike of the "H" ----------
-   pivot (at the spike) -> red ribbon loop hooked over the spike -> two ribbon strands -> wreath
-   The pivot swings gently so the wreath reads as hanging. */
+/* ---------- CHRISTMAS: fir wreath dropped over the right upright of the "H" ----------
+   The ring lies almost flat around the bar (tipped toward the camera): the front arc passes in
+   front of the bar and the back arc is hidden behind the letter, like a ring tossed onto a post. */
 const wreathPivot = new THREE.Group();
 const wreath = new THREE.Group();
 {
@@ -395,32 +395,29 @@ const wreath = new THREE.Group();
     wreath.add(g);
   });
 
-  // satin ribbon: hanger loop over the spike, two strands down to a bow at the wreath top
+  // satin ribbon bow on the front of the ring
   const ribbon = new THREE.MeshStandardMaterial({ color: 0xc41230, roughness: 0.3, metalness: 0.15, emissive: 0x2a0006 });
   const tube = (pts, r = 0.016, closed = false) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, closed), 48, r, 8, closed), ribbon);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const DROP = 0.34; // spike -> wreath top
-  // loop around the spike (front-to-back), lives in pivot space
-  wreathPivot.add(tube([V(0, 0.05, 0), V(0, 0.03, 0.12), V(0, -0.05, 0.14), V(0, -0.07, 0), V(0, -0.05, -0.14), V(0, 0.03, -0.12)], 0.014, true));
-  // strands from the loop to the bow
-  wreathPivot.add(tube([V(0, -0.06, 0.13), V(-0.02, -0.2, 0.2), V(-0.04, -DROP + 0.02, 0.26)], 0.014));
-  wreathPivot.add(tube([V(0, -0.06, 0.13), V(0.02, -0.2, 0.2), V(0.04, -DROP + 0.02, 0.26)], 0.014));
-  // bow on top of the wreath
   const bow = new THREE.Group();
-  bow.position.set(0, -DROP, 0.27);
+  // ring-local: front of the ring is local -y, top face is local +z
+  bow.position.set(0, -R - 0.02, TUBE * 0.9);
+  bow.rotation.x = Math.PI / 2 - 0.78; // stand the bow up so it faces the camera
   const loop = (s) => tube([V(0, 0, 0), V(s * 0.08, 0.06, 0.01), V(s * 0.16, 0.02, 0), V(s * 0.12, -0.05, -0.01), V(s * 0.03, -0.02, 0)], 0.02, true);
   bow.add(loop(-1), loop(1));
   const knot = new THREE.Mesh(new THREE.SphereGeometry(0.038, 14, 10), ribbon); knot.scale.set(1, 0.9, 0.7); bow.add(knot);
   bow.add(tube([V(-0.02, -0.02, 0), V(-0.06, -0.12, 0.02), V(-0.05, -0.22, 0.01)], 0.018));
   bow.add(tube([V(0.02, -0.02, 0), V(0.07, -0.11, 0.02), V(0.09, -0.2, 0)], 0.018));
-  wreathPivot.add(bow);
+  wreath.add(bow);
 
-  wreath.position.set(0, -DROP - R + 0.04, 0.26);
+  // lie the ring almost flat around the post, tipped toward the viewer so it reads as "dropped over" the bar
+  wreath.rotation.x = -Math.PI / 2 + 0.78;
   wreathPivot.add(wreath);
 }
-// hook point: just below the tip of the H's top-right spike (logo image: x 0.733, y 0.02 from top)
-wreathPivot.position.set((0.728 - 0.5) * LOGO_W, (0.5 - 0.075) * LOGO_H, 0);
-wreathPivot.scale.setScalar(1.25);
+// around the H's right upright (logo image: bar x 0.755-0.787), just above the crossbar
+wreathPivot.position.set((0.771 - 0.5) * LOGO_W, (0.5 - 0.28) * LOGO_H, 0);
+wreathPivot.rotation.z = -0.12;
+wreathPivot.scale.setScalar(1.2);
 logoGroup.add(wreathPivot);
 
 /* ---------- WINTER: snowfall in three depth layers (far fine / mid / near big soft flakes) ---------- */
@@ -717,8 +714,8 @@ function tick() {
       L.geo.attributes.position.needsUpdate = true;
     }
   }
-  wreathPivot.rotation.z = Math.sin(t * 1.1) * 0.07;   // hanging sway
-  wreath.rotation.z = Math.sin(t * 1.7 + 1.0) * 0.03;
+  wreathPivot.rotation.z = -0.12 + Math.sin(t * 1.1) * 0.035;   // slight wobble on the post
+  wreath.rotation.z = Math.sin(t * 0.6) * 0.15;               // ring slowly turns around the post
 
   // streaks fly toward the camera
   const sp = (reduce ? 0 : 1) * (6 + warp * 90);
