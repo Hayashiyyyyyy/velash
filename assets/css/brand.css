@@ -133,3 +133,8 @@ a.add-btn:hover, .add-btn:not(.is-disabled):hover, .submit-btn:hover { backgroun
 .t-name { font-size: 16px; }
 .t-meta { font-family: var(--body) !important; font-size: 13px !important; }
 .t-buy { justify-self: start; margin-top: 6px; }
+
+/* hero scrolls away naturally (no pinned zoom-into-logo) */
+.hero-pin, .hero-pin[style] { height: auto !important; }
+.hero-pin > .hero { position: relative !important; }
+.hero::before { display: none !important; }
