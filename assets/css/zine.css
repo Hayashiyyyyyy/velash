@@ -187,3 +187,12 @@ body::after {
   .z-in, .intro-done .z-in { opacity: 1; animation: none; }
   body::after { animation: none; }
 }
+
+/* 3D logo canvas: overflows the logo box so rotation never clips; flat logo hides once 3D is ready */
+.z-logo { transform: translateX(-50%); }
+.z-logo .logo3d {
+  position: absolute; left: -14%; right: -14%; top: -40%; bottom: -40%; width: 128%; height: 180%;
+  pointer-events: none; filter: drop-shadow(0 0 22px rgba(255, 255, 255, .18)) drop-shadow(0 14px 18px rgba(0, 0, 0, .6));
+}
+.z-logo.is-3d img { visibility: hidden; }
+@media (max-width: 900px) { .z-logo { transform: none; } }

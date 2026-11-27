@@ -10,6 +10,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/zine.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" } }
+</script>
 </head>
 <body data-page="home">
 
@@ -50,6 +53,7 @@
       <div class="z-logo z-in" data-depth="-10" style="--d:.32s">
         <img class="ink-pink" src="assets/img/logo-white.webp" alt="" aria-hidden="true">
         <img class="ink" src="assets/img/logo-white.webp" alt="VE:LASH">
+        <canvas class="logo3d" aria-hidden="true"></canvas>
       </div>
 
       <h1 class="z-head">
@@ -139,5 +143,114 @@
 <script src="assets/js/main.js"></script>
 <script src="assets/js/intro.js"></script>
 <script src="assets/js/zine.js"></script>
+<script type="module">
+/* VE:LASH 3D logo (chrome face + pink extrusion), rendered on a transparent canvas inside the zine collage.
+   The flat logo image stays in place until the 3D version is ready (and is the fallback without WebGL). */
+import * as THREE from 'three';
+
+const box = document.querySelector('.z-logo');
+const canvas = box && box.querySelector('.logo3d');
+if (canvas) {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lite = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+  catch (e) { renderer = null; }
+  if (renderer) {
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+
+    const LOGO_W = 6.4, LOGO_H = LOGO_W * (410 / 966);
+    const SLICES = lite ? 14 : 22, DEPTH = 0.46;
+    const tex = new THREE.Texture();
+    tex.colorSpace = THREE.NoColorSpace; tex.anisotropy = 8;
+    const uTime = { value: 0 };
+    const logo = new THREE.Group();
+    logo.visible = false;
+    scene.add(logo);
+
+    const geo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
+    for (let i = 0; i < SLICES; i++) {
+      const layer = i / (SLICES - 1); // 0 = back, 1 = front
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { map: { value: tex }, uTime, uLayer: { value: layer } },
+        side: THREE.DoubleSide,
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+        fragmentShader: /* glsl */`
+          uniform sampler2D map; uniform float uTime; uniform float uLayer;
+          varying vec2 vUv;
+          void main() {
+            if (texture2D(map, vUv).a < 0.5) discard;
+            vec3 col;
+            if (uLayer > 0.99) {
+              float t = uTime * 0.6;
+              float band = sin(vUv.y * 9.0 - vUv.x * 3.0 + t * 2.0) * 0.5 + 0.5;
+              float sweep = smoothstep(0.0, 0.08, abs(fract(vUv.x * 0.6 - t * 0.25) - 0.5) - 0.42);
+              vec3 chrome = mix(vec3(0.32, 0.33, 0.38), vec3(0.92), band);
+              vec3 iri = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + vUv.x * 0.8 + t * 0.15));
+              col = mix(chrome, iri, 0.2);
+              col += (1.0 - sweep) * 0.55;
+            } else {
+              vec3 pink = vec3(1.0, 0.18, 0.56);
+              col = mix(pink * 1.15, vec3(0.07, 0.06, 0.08), smoothstep(0.0, 0.75, uLayer));
+            }
+            gl_FragColor = vec4(col, 1.0);
+          }`,
+      });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.z = -DEPTH / 2 + layer * DEPTH;
+      logo.add(m);
+    }
+
+    new THREE.TextureLoader().load('assets/img/logo-white.webp', (t) => {
+      tex.image = t.image; tex.needsUpdate = true;
+      logo.visible = true;
+      box.classList.add('is-3d');
+    });
+
+    function resize() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (!w || !h) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      // fit the logo to ~78% of the canvas width
+      camera.position.z = (LOGO_W / 0.78) / (2 * Math.tan(THREE.MathUtils.degToRad(15)) * camera.aspect);
+      camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    // interaction: follow the pointer (desktop) / gentle auto sway (touch)
+    const target = new THREE.Vector2(), cur = new THREE.Vector2();
+    addEventListener('pointermove', (e) => { target.set(e.clientX / innerWidth * 2 - 1, e.clientY / innerHeight * 2 - 1); });
+
+    // entrance: spin in when the intro finishes
+    let start = null;
+    const go = () => { if (start === null) start = performance.now(); };
+    if (document.body.classList.contains('intro-done')) go(); else addEventListener('velash:intro-done', go);
+
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(canvas);
+    const clock = new THREE.Clock();
+    (function tick() {
+      requestAnimationFrame(tick);
+      if (!visible || document.hidden) return;
+      const t = reduce ? 0 : clock.getElapsedTime();
+      uTime.value = t;
+      const k = start === null ? 0 : (reduce ? 1 : Math.min(1, (performance.now() - start) / 1400));
+      const ease = 1 - Math.pow(1 - k, 4);
+      cur.lerp(target, 0.07);
+      logo.scale.setScalar(0.001 + ease * 0.999);
+      logo.rotation.y = cur.x * 0.55 + Math.sin(t * 0.6) * (lite ? 0.28 : 0.12) + (1 - ease) * Math.PI * 2;
+      logo.rotation.x = cur.y * 0.3 + Math.sin(t * 0.45) * 0.05;
+      logo.rotation.z = -0.035;
+      logo.position.y = Math.sin(t * 0.9) * 0.06;
+      renderer.render(scene, camera);
+    })();
+  }
+}
+</script>
 </body>
 </html>
