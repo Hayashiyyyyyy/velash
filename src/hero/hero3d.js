@@ -127,10 +127,23 @@ scene.add(floor);
 const logoGroup = new THREE.Group();
 scene.add(logoGroup);
 
-// logo texture: the cached webp on the web; an embedded copy only when opened as a local file
+// logo textures, built at 2x the source resolution:
+//   map  = sharp silhouette (alpha) for the cut-out
+//   hmap = softened silhouette used as a height field -> bevelled normals on the metal face
 const tex = new THREE.Texture();
+const htex = new THREE.Texture();
 logoGroup.visible = false;
-const loadLogo = (src) => new THREE.TextureLoader().load(src, (t) => { tex.image = t.image; tex.needsUpdate = true; logoGroup.visible = true; });
+const buildLogo = (img) => {
+  const W2 = 2048, H2 = Math.round(W2 * img.height / img.width);
+  const sharp = document.createElement('canvas'); sharp.width = W2; sharp.height = H2;
+  const sg = sharp.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(img, 0, 0, W2, H2);
+  const soft = document.createElement('canvas'); soft.width = W2 / 2; soft.height = Math.round(H2 / 2);
+  const hg = soft.getContext('2d'); hg.filter = 'blur(5px)'; hg.drawImage(sharp, 0, 0, soft.width, soft.height);
+  tex.image = sharp; htex.image = soft;
+  tex.needsUpdate = htex.needsUpdate = true;
+  logoGroup.visible = true;
+};
+const loadLogo = (src) => { const i = new Image(); i.onload = () => buildLogo(i); i.src = src; };
 if (location.protocol === 'file:') {
   const s = document.createElement('script');
   s.src = 'assets/js/logo-data.js';
@@ -139,18 +152,15 @@ if (location.protocol === 'file:') {
 } else {
   loadLogo('assets/img/logo-white.webp');
 }
-tex.colorSpace = THREE.NoColorSpace;
-tex.anisotropy = 8;
+[tex, htex].forEach((t) => { t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; });
 
-// crop region of the 1280x1280 logo image (u: 0.10-0.87, v: 0.29-0.63)
-const CROP = { ox: 0, oy: 0, sx: 1, sy: 1 };
 const LOGO_W = 6.4;
 const LOGO_H = LOGO_W * (410 / 966);
-const SLICES = lite ? 12 : 16;
+const SLICES = lite ? 26 : 44;   // dense layers -> smooth, solid-looking sides
 const DEPTH = 0.42;
 
 const sliceGeo = new THREE.PlaneGeometry(LOGO_W, LOGO_H);
-const logoUniforms = { uTime: shared.uTime, map: { value: tex }, uLift: { value: 0 } };
+const logoUniforms = { uTime: shared.uTime, map: { value: tex }, hmap: { value: htex }, uLift: { value: 0 } };
 
 for (let i = 0; i < SLICES; i++) {
   const layer = i / (SLICES - 1); // 0 = back, 1 = front
@@ -159,33 +169,59 @@ for (let i = 0; i < SLICES; i++) {
     side: THREE.DoubleSide,
     vertexShader: /* glsl */`
       varying vec2 vUv;
-      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      varying vec3 vT, vB, vN, vView;
+      void main() {
+        vUv = uv;
+        vT = normalize(normalMatrix * vec3(1.0, 0.0, 0.0));
+        vB = normalize(normalMatrix * vec3(0.0, 1.0, 0.0));
+        vN = normalize(normalMatrix * vec3(0.0, 0.0, 1.0));
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vView = mv.xyz;
+        gl_Position = projectionMatrix * mv;
+      }`,
     fragmentShader: /* glsl */`
       uniform sampler2D map;
+      uniform sampler2D hmap;
       uniform float uTime;
       uniform float uLayer;
       uniform float uLift;
       varying vec2 vUv;
+      varying vec3 vT, vB, vN, vView;
+      // studio environment seen in the metal (view space): soft-box strips, dark floor, faint brand-pink bounce
+      vec3 env(vec3 r) {
+        float up = r.y;
+        vec3 c = mix(vec3(0.015, 0.015, 0.02), vec3(0.10, 0.10, 0.12), smoothstep(-0.7, 0.1, up));
+        c += vec3(1.0) * 1.6 * smoothstep(0.30, 0.40, up) * smoothstep(0.80, 0.62, up);            // overhead soft-box
+        c += vec3(1.0) * 1.1 * exp(-pow((r.x - 0.62) * 5.5, 2.0)) * smoothstep(-0.25, 0.35, up);  // right strip light
+        c += vec3(0.82, 0.88, 1.0) * 0.55 * exp(-pow((r.x + 0.66) * 4.5, 2.0));                  // cool left fill
+        c += vec3(1.0, 0.18, 0.56) * 0.28 * smoothstep(-0.05, -0.6, up) * exp(-pow(r.x * 1.6, 2.0)); // pink floor bounce
+        return c;
+      }
       void main() {
-        vec2 uv = vec2(${CROP.ox.toFixed(3)}, ${CROP.oy.toFixed(3)}) + vUv * vec2(${CROP.sx.toFixed(3)}, ${CROP.sy.toFixed(3)});
+        vec2 uv = vUv;
         float alpha = texture2D(map, uv).a;
         if (alpha < 0.5) discard;
         vec3 col;
         if (uLayer > 0.99) {
-          // polished chrome: reflects a bright sky over a dark horizon (classic mirror-metal read), no rainbow
-          float t = uTime * 0.22;
-          float y = vUv.y + 0.07 * sin(vUv.x * 3.2 + t) + 0.025 * sin(vUv.x * 11.0 - t * 1.7);
-          vec3 sky = mix(vec3(0.66, 0.68, 0.74), vec3(0.97, 0.97, 0.99), smoothstep(0.52, 0.95, y));
-          vec3 ground = mix(vec3(0.07, 0.07, 0.09), vec3(0.30, 0.31, 0.35), smoothstep(0.05, 0.48, y));
-          col = mix(ground, sky, smoothstep(0.49, 0.53, y));
-          col += vec3(1.0) * 0.55 * smoothstep(0.012, 0.0, abs(y - 0.53));            // crisp horizon highlight
-          float gx = fract(t * 0.35) * 1.8 - 0.4;                                        // slow specular glint
-          col += vec3(1.0) * 0.45 * exp(-pow((vUv.x - gx - (vUv.y - 0.5) * 0.35) * 9.0, 2.0));
-          col = mix(col, vec3(1.0), uLift * 0.55) * (1.0 + uLift * 0.6); // phones: brighter face
+          // bevelled metal face: normal from the softened silhouette, reflected into the studio environment
+          vec2 px = vec2(1.0 / 1024.0, 1.0 / 434.0);
+          float hx = texture2D(hmap, uv + vec2(px.x, 0.0)).a - texture2D(hmap, uv - vec2(px.x, 0.0)).a;
+          float hy = texture2D(hmap, uv + vec2(0.0, px.y)).a - texture2D(hmap, uv - vec2(0.0, px.y)).a;
+          vec3 nObj = normalize(vec3(-hx * 5.0, -hy * 5.0, 1.0));
+          vec3 n = normalize(vT * nObj.x + vB * nObj.y + vN * nObj.z);
+          vec3 v = normalize(-vView);
+          vec3 r = reflect(-v, n);
+          float fres = pow(1.0 - max(dot(n, v), 0.0), 4.0);
+          vec3 metal = vec3(0.93, 0.94, 0.97);
+          col = env(r) * metal;
+          col += fres * 0.35;
+          col = mix(col, vec3(1.0), uLift * 0.25) * (1.0 + uLift * 0.35); // phones: a touch brighter
         } else {
-          // graphite sides: light bevel next to the face, dark in depth, a thin brand-pink line only at the very back
-          col = mix(vec3(0.05, 0.05, 0.06), vec3(0.42, 0.43, 0.47), smoothstep(0.55, 0.97, uLayer));
-          col = mix(vec3(1.0, 0.18, 0.56) * 0.9, col, smoothstep(0.0, 0.12, uLayer));
+          // graphite sides: bright bevel rim next to the face, falling off into depth, thin pink line at the very back
+          float rim = smoothstep(0.86, 0.99, uLayer);
+          col = mix(vec3(0.035, 0.035, 0.04), vec3(0.20, 0.205, 0.22), smoothstep(0.2, 0.86, uLayer));
+          col = mix(col, vec3(0.75, 0.76, 0.80), rim * 0.8);
+          col = mix(vec3(1.0, 0.18, 0.56) * 0.85, col, smoothstep(0.0, 0.07, uLayer));
         }
         // snow piled on every upward-facing edge (uneven thickness), with a little glitter
         float th = (0.018 + 0.022 * (0.5 + 0.5 * sin(vUv.x * 90.0)) * (0.5 + 0.5 * sin(vUv.x * 37.0 + 1.3))) * (1.0 - uLift * 0.55);
@@ -350,8 +386,8 @@ const starGeo = (() => {
   // mixed indexed/non-indexed geometries can't merge: make all non-indexed
   return mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g)));
 })();
-const chrome = new THREE.MeshStandardMaterial({ color: 0xdff3ff, metalness: 0.35, roughness: 0.12, emissive: 0x0b2a46 });
-const pinkChrome = new THREE.MeshStandardMaterial({ color: 0xffc2de, metalness: 0.35, roughness: 0.15, emissive: 0x3a0a24 });
+const chrome = new THREE.MeshPhysicalMaterial({ color: 0xeef6ff, metalness: 0.1, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.6 });   // glossy ice
+const pinkChrome = new THREE.MeshPhysicalMaterial({ color: 0xffd6e8, metalness: 0.1, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
 
 const stars = [];
 const starDefs = [
@@ -362,7 +398,7 @@ const starDefs = [
 starDefs.forEach(([x, y, z, s, mat], i) => {
   const m = new THREE.Mesh(starGeo, mat);
   m.position.set(x, y, z);
-  m.scale.setScalar(s);
+  m.scale.setScalar(s * 0.72);
   m.userData = { base: new THREE.Vector3(x, y, z), speed: 0.3 + (i % 4) * 0.12, phase: i * 1.7 };
   scene.add(m);
   stars.push(m);
@@ -379,7 +415,7 @@ const core = new THREE.Mesh(
   new THREE.MeshBasicMaterial({ color: 0x7d8cff, wireframe: true, transparent: true, opacity: 0.14 })
 );
 core.position.z = -3;
-scene.add(core);
+// (wireframe core no longer added: read as cheap)
 
 const ring = new THREE.Mesh(new THREE.TorusGeometry(4.6, 0.012, 8, 200), new THREE.MeshBasicMaterial({ color: 0xff2f8e }));
 ring.rotation.x = Math.PI / 2.3;
@@ -388,7 +424,7 @@ scene.add(ring);
 const ring2 = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.008, 8, 200), new THREE.MeshBasicMaterial({ color: 0x1fbf5f }));
 ring2.rotation.set(Math.PI / 1.8, 0.4, 0);
 ring2.position.z = -2;
-scene.add(ring2);
+// (secondary green ring no longer added)
 
 /* ---------- light streaks ---------- */
 const SCOUNT = lite ? 160 : 320;
