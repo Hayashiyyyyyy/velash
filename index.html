@@ -199,6 +199,24 @@ const nebulaMat = new THREE.ShaderMaterial({
       col += mix(ice, pink, 0.3) * 0.32 * exp(-abs(vUv.y - 0.42) * 14.0); // horizon glow
       vec2 g = vUv * vec2(480.0, 270.0);
       col += vec3(step(0.9975, hash(floor(g))) * 0.8);      // stars
+      // full moon with a soft halo
+      vec2 mc = vec2(0.74, 0.63);
+      float md = length((vUv - mc) * vec2(1.78, 1.0));
+      col += vec3(0.6, 0.75, 1.0) * 0.28 * exp(-md * 10.0);
+      col = mix(col, vec3(0.93, 0.96, 1.0) - 0.08 * fbm(vUv * 60.0), smoothstep(0.03, 0.027, md));
+      // snowy mountain ranges, far (pale, hazy) to near (darker), each with snow on the upper slopes
+      for (int k = 0; k < 3; k++) {
+        float fk = float(k);
+        float h = 0.405 + 0.012 * fk + (0.085 - 0.018 * fk) * fbm(vec2(vUv.x * (3.0 + fk * 2.3) + fk * 7.1, fk * 3.7));
+        if (vUv.y < h) {
+          vec3 rock = mix(vec3(0.2, 0.27, 0.45), vec3(0.06, 0.08, 0.17), fk / 2.0);
+          float slope = fbm(vec2(vUv.x * 40.0, vUv.y * 40.0 + fk));
+          float snowline = h - (0.03 + 0.03 * slope);
+          vec3 snowc = mix(vec3(0.68, 0.76, 0.92), vec3(0.42, 0.5, 0.68), fk / 2.0);
+          col = mix(rock, snowc, smoothstep(snowline - 0.006, snowline + 0.004, vUv.y));
+          col = mix(col, vec3(0.12, 0.16, 0.3), smoothstep(h - 0.02, h - 0.09, vUv.y) * 0.6); // haze at the foot
+        }
+      }
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
@@ -236,14 +254,70 @@ const floor = new THREE.Mesh(
         float l = max(line(g.x, 0.6), line(g.y, 0.6));
         float dist = length(vW.xz - vec2(0.0, 6.0));
         float fade = 1.0 - smoothstep(6.0, 70.0, dist);
-        vec3 col = mix(vec3(0.55, 0.88, 1.0), vec3(0.62, 0.42, 1.0), smoothstep(10.0, 60.0, dist)); // icy floor
-        gl_FragColor = vec4(col * 1.3, l * fade * 0.55);
+        vec3 col = mix(vec3(1.0, 0.25, 0.6), vec3(0.45, 0.85, 1.0), smoothstep(8.0, 45.0, dist)); // neon road over the snow
+        float road = 1.0 - smoothstep(5.5, 9.0, abs(vW.x));
+        gl_FragColor = vec4(col * 1.2, l * fade * 0.75 * road);
       }`,
   })
 );
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -3.6;
 scene.add(floor);
+
+/* ---------- WINTER: moonlit snowfield, hills and snowy fir trees ---------- */
+const vhash = (x, z) => { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); };
+const vnoise = (x, z) => {
+  const ix = Math.floor(x), iz = Math.floor(z), fx = x - ix, fz = z - iz;
+  const ux = fx * fx * (3 - 2 * fx), uz = fz * fz * (3 - 2 * fz);
+  const a = vhash(ix, iz), b = vhash(ix + 1, iz), c = vhash(ix, iz + 1), d = vhash(ix + 1, iz + 1);
+  return a + (b - a) * ux + (c - a) * uz + (a - b - c + d) * ux * uz;
+};
+const vfbm = (x, z) => vnoise(x, z) * 0.55 + vnoise(x * 2.1, z * 2.1) * 0.3 + vnoise(x * 4.3, z * 4.3) * 0.15;
+const GROUND = -3.66;
+// flat "road" in the middle, rolling snow hills on both sides, rising toward the back
+const groundH = (x, z) => {
+  const side = THREE.MathUtils.smoothstep(Math.abs(x), 6, 18);
+  const back = THREE.MathUtils.smoothstep(-z, 25, 55);
+  return GROUND + side * (vfbm(x * 0.07, z * 0.07) * 6.5 + 0.5) + back * vfbm(x * 0.05 + 9, z * 0.05) * 5;
+};
+{
+  const seg = lite ? 70 : 120;
+  const g = new THREE.PlaneGeometry(150, 70, seg, Math.round(seg / 2));
+  g.rotateX(-Math.PI / 2); g.translate(0, 0, -25);
+  const pa = g.attributes.position;
+  for (let i = 0; i < pa.count; i++) pa.setY(i, groundH(pa.getX(i), pa.getZ(i)));
+  g.computeVertexNormals();
+  const snowField = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xa9bbd6, roughness: 0.92, metalness: 0 }));
+  scene.add(snowField);
+
+  // fir trees: dark foliage tiers + white snow caps (two instanced meshes, a few draw calls total)
+  const tiers = [[1.0, 1.5, 1.05], [0.8, 1.3, 1.85], [0.56, 1.05, 2.55]];
+  const fol = [new THREE.CylinderGeometry(0.1, 0.13, 0.6, 6).translate(0, 0.3, 0)];
+  const caps = [];
+  tiers.forEach(([r, h, y]) => {
+    fol.push(new THREE.ConeGeometry(r, h, 8).translate(0, y, 0));
+    caps.push(new THREE.ConeGeometry(r * 0.72, h * 0.5, 8).translate(0, y + h * 0.26, 0));
+  });
+  const folGeo = mergeGeometries(fol), capGeo = mergeGeometries(caps);
+  const TREES = lite ? 46 : 90;
+  const folMesh = new THREE.InstancedMesh(folGeo, new THREE.MeshStandardMaterial({ color: 0x0e2a22, roughness: 0.9 }), TREES);
+  const capMesh = new THREE.InstancedMesh(capGeo, new THREE.MeshStandardMaterial({ color: 0xdfe9f7, roughness: 0.85 }), TREES);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3();
+  for (let i = 0; i < TREES; i++) {
+    const side = i % 2 ? 1 : -1;
+    const x = side * (8 + Math.random() * 30), z = 4 - Math.random() * 52;
+    pos.set(x, groundH(x, z) - 0.1, z);
+    q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * 6.28);
+    const s = 0.8 + Math.random() * 1.1; sc.set(s, s * (0.9 + Math.random() * 0.4), s);
+    m4.compose(pos, q, sc);
+    folMesh.setMatrixAt(i, m4); capMesh.setMatrixAt(i, m4);
+  }
+  scene.add(folMesh, capMesh);
+
+  // moonlight + cold sky fill so the snow reads as a night landscape
+  const moon = new THREE.DirectionalLight(0xc8dcff, 1.1); moon.position.set(12, 14, -30);
+  scene.add(moon, new THREE.HemisphereLight(0x7fa6ff, 0x141a30, 0.55));
+}
 
 /* ---------- logo (stacked slices) ---------- */
 const logoGroup = new THREE.Group();
@@ -329,8 +403,8 @@ for (let i = 0; i < SLICES; i++) {
 const wreathPivot = new THREE.Group();
 const wreath = new THREE.Group();
 {
-  const R = 0.4;        // ring radius
-  const TUBE = 0.1;     // body thickness
+  const R = 0.27;       // ring radius (just wider than the spike, so it looks slipped on)
+  const TUBE = 0.07;    // body thickness
   const rnd = (a, b) => a + Math.random() * (b - a);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
   const UP = new THREE.Vector3(0, 1, 0), dir = new THREE.Vector3(), nrm = new THREE.Vector3(), tan = new THREE.Vector3();
@@ -340,8 +414,8 @@ const wreath = new THREE.Group();
   wreath.add(new THREE.Mesh(new THREE.TorusGeometry(R, TUBE * 0.75, 12, 64), new THREE.MeshStandardMaterial({ color: 0x0c331c, roughness: 0.9 })));
 
   // fir needles: thin 4-sided cones growing out of the body, swept along the ring
-  const N = lite ? 650 : 1100;
-  const needleGeo = new THREE.ConeGeometry(0.011, 0.15, 4); needleGeo.translate(0, 0.075, 0);
+  const N = lite ? 420 : 700;
+  const needleGeo = new THREE.ConeGeometry(0.009, 0.11, 4); needleGeo.translate(0, 0.055, 0);
   const needles = new THREE.InstancedMesh(needleGeo, new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.05 }), N);
   const greens = [0x1b5e34, 0x23733f, 0x2d8a4c, 0x174d2b, 0x2a6e3c, 0x356f2f];
   for (let i = 0; i < N; i++) {
@@ -375,7 +449,7 @@ const wreath = new THREE.Group();
   const coneMat = new THREE.MeshStandardMaterial({ color: 0x6b4226, roughness: 0.85, flatShading: true });
   const berryGeo = new THREE.SphereGeometry(0.028, 14, 10);
   const pineGeo = new THREE.SphereGeometry(1, 7, 9); pineGeo.scale(0.045, 0.075, 0.045);
-  const spots = [0.35, 1.1, 1.9, 2.6, 3.3, 4.1, 4.9, 5.6];
+  const spots = [0.7, 1.9, 3.1, 4.3, 5.5];
   spots.forEach((a, k) => {
     const g = new THREE.Group();
     g.position.set(Math.cos(a) * R, Math.sin(a) * R, TUBE * 0.75);
@@ -403,6 +477,7 @@ const wreath = new THREE.Group();
   // ring-local: front of the ring is local -y, top face is local +z
   bow.position.set(0, -R - 0.02, TUBE * 0.9);
   bow.rotation.x = Math.PI / 2 - 0.78; // stand the bow up so it faces the camera
+  bow.scale.setScalar(0.72);
   const loop = (s) => tube([V(0, 0, 0), V(s * 0.08, 0.06, 0.01), V(s * 0.16, 0.02, 0), V(s * 0.12, -0.05, -0.01), V(s * 0.03, -0.02, 0)], 0.02, true);
   bow.add(loop(-1), loop(1));
   const knot = new THREE.Mesh(new THREE.SphereGeometry(0.038, 14, 10), ribbon); knot.scale.set(1, 0.9, 0.7); bow.add(knot);
@@ -414,10 +489,10 @@ const wreath = new THREE.Group();
   wreath.rotation.x = -Math.PI / 2 + 0.78;
   wreathPivot.add(wreath);
 }
-// around the H's right upright (logo image: bar x 0.755-0.787), just above the crossbar
-wreathPivot.position.set((0.771 - 0.5) * LOGO_W, (0.5 - 0.28) * LOGO_H, 0);
-wreathPivot.rotation.z = -0.12;
-wreathPivot.scale.setScalar(1.2);
+// slipped over the upper part of the H's right upright, where it narrows into the spike (logo image x≈0.768, y≈0.12)
+wreathPivot.position.set((0.768 - 0.5) * LOGO_W, (0.5 - 0.12) * LOGO_H, 0);
+wreathPivot.rotation.z = 0.45; // follow the spike, which leans left as it rises
+wreathPivot.scale.setScalar(1.0);
 logoGroup.add(wreathPivot);
 
 /* ---------- WINTER: snowfall in three depth layers (far fine / mid / near big soft flakes) ---------- */
@@ -714,7 +789,7 @@ function tick() {
       L.geo.attributes.position.needsUpdate = true;
     }
   }
-  wreathPivot.rotation.z = -0.12 + Math.sin(t * 1.1) * 0.035;   // slight wobble on the post
+  wreathPivot.rotation.z = 0.45 + Math.sin(t * 1.1) * 0.035;   // slight wobble on the spike
   wreath.rotation.z = Math.sin(t * 0.6) * 0.15;               // ring slowly turns around the post
 
   // streaks fly toward the camera
