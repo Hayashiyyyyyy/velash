@@ -100,22 +100,6 @@
     rail.addEventListener('scroll', () => requestAnimationFrame(run), { passive: true });
   }
 
-  /* ---------- SCENE: framed photo grows to full screen ---------- */
-  const zoom = document.getElementById('zoom');
-  const frame = document.getElementById('zoom-frame');
-  const copy = document.getElementById('zoom-copy');
-  if (zoom && frame) {
-    scenes.push(() => {
-      const p = reduce ? 1 : pinProgress(zoom);
-      const g = ease(clamp(p / 0.7));                 // first 70%: grow
-      const small = innerWidth <= 900 ? [22, 14] : [24, 32]; // start inset (top/bottom %, left/right %)
-      const iy = small[0] * (1 - g), ix = small[1] * (1 - g), rad = 22 * (1 - g);
-      frame.style.clipPath = `inset(${iy}% ${ix}% ${iy}% ${ix}% round ${rad}px)`;
-      frame.style.setProperty('--s', (1.28 - 0.28 * g).toFixed(4));
-      if (copy) copy.style.setProperty('--c', ease(clamp((p - 0.55) / 0.35)).toFixed(3));
-    });
-  }
-
   /* ---------- run all scenes on scroll / resize ---------- */
   let queued = false;
   function run() { queued = false; scenes.forEach((s) => s()); }

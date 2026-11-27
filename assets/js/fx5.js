@@ -6,44 +6,6 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const buzz = (ms) => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
 
-  /* ---------- bottom dock ---------- */
-  const page = document.body.dataset.page;
-  const I = {
-    home: '<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
-    look: '<svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="m3.5 16 5-5 4 4 3-3 5 5"/><circle cx="15.5" cy="8.5" r="1.5"/></svg>',
-    shop: '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
-    store: '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>',
-  };
-  const items = [
-    ['index.html', 'Home', 'home', I.home],
-    ['collection.html', 'Look', 'collection', I.look],
-    ['shop.html', 'Shop', 'shop', I.shop],
-    [BASE_URL, 'Store', 'store', I.store],
-  ];
-  const dock = document.createElement('nav');
-  dock.className = 'dock';
-  dock.setAttribute('aria-label', 'クイックナビ');
-  dock.innerHTML = '<i class="dock-pill" aria-hidden="true"></i>' + items.map(([href, label, key, icon]) =>
-    `<a href="${href}"${key === 'store' ? ' target="_blank" rel="noopener" class="is-store"' : ''}${key === page ? ' aria-current="page"' : ''}>${icon}<span>${label}</span></a>`).join('');
-  document.body.append(dock);
-  document.body.classList.add('has-dock');
-  const pill = dock.querySelector('.dock-pill');
-  const place = () => {
-    const a = dock.querySelector('a[aria-current="page"]');
-    if (!a) { pill.style.opacity = 0; return; }
-    pill.style.opacity = 1;
-    pill.style.width = `${a.offsetWidth}px`;
-    pill.style.transform = `translateX(${a.offsetLeft}px)`;
-  };
-  addEventListener('load', place); addEventListener('resize', place); requestAnimationFrame(place);
-  dock.addEventListener('pointerdown', (e) => {
-    const a = e.target.closest('a'); if (!a || a.classList.contains('is-store')) return;
-    pill.style.opacity = 1; pill.style.width = `${a.offsetWidth}px`; pill.style.transform = `translateX(${a.offsetLeft}px)`;
-  });
-  // show after the first screen on the top page, immediately elsewhere
-  const showDock = () => dock.classList.toggle('show', page !== 'home' || scrollY > innerHeight * 0.4);
-  addEventListener('scroll', showDock, { passive: true }); showDock();
-
   /* ---------- pagination dots for swipe rails ---------- */
   ['track-rail', 'film-rail'].forEach((id) => {
     const rail = document.getElementById(id);

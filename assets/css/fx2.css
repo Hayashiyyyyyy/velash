@@ -286,3 +286,25 @@ html { scrollbar-width: thin; scrollbar-color: rgba(255, 47, 142, .7) #07070b; }
 }
 @media (prefers-reduced-motion: reduce) { .hud-scan, .hud-ruler::after { animation: none; } }
 @media (min-width: 901px) { .site-footer { padding-bottom: 120px; } }
+
+/* =========================================================
+   CLEANUP (user feedback): no red eyebrow labels, static lookbook banner,
+   no bottom dock / bottom store pill on phones
+   ========================================================= */
+.section-label { display: none !important; }
+.section-head .section-title, .track-head .section-title, .page-hero .section-title { margin-top: 0; }
+
+/* lookbook banner: full-width photo + title, no grow-from-small effect */
+.zoom { height: auto !important; }
+.zoom-sticky { position: relative; height: 92vh; height: 92svh; }
+.zoom-frame { clip-path: none !important; }
+.zoom-frame img { transform: none; }
+.zoom-frame::after { opacity: 1; }
+.zoom-copy { opacity: 1; transform: none; }
+@media (max-width: 900px), (pointer: coarse) {
+  .zoom-sticky { height: 78vh; height: 78svh; }
+  .zoom-frame img { border-radius: 0; }
+  .dock { display: none !important; }
+  .fab-store { display: none !important; }
+  .has-dock .site-footer, .site-footer { padding-bottom: 56px; }
+}
