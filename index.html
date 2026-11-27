@@ -630,7 +630,7 @@ function layoutLogo(w, h) {
   const bottom = (headline ? headline.offsetTop : h * 0.6) - 24;
   const pxPerWorld = h / (2 * baseZ * Math.tan(THREE.MathUtils.degToRad(20)));
   const availH = Math.max(60, bottom - top);
-  logoScale = Math.min(1.25, (w * 0.98) / (LOGO_W * pxPerWorld), (availH * 1.0) / (LOGO_H * pxPerWorld));
+  logoScale = Math.min(1.6, (w * 1.2) / (LOGO_W * pxPerWorld), (availH * 1.0) / (LOGO_H * pxPerWorld)); // letters bigger; spike tips may run off the edges
   const centerPx = top + (bottom - top) * 0.62; // sit a little low in the band, closer to the headline
   logoY = 0.3 + (h / 2 - centerPx) / pxPerWorld;
 }
