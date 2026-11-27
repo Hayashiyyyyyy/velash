@@ -37,6 +37,7 @@
 </div>
 
 <main>
+  <div class="hero-pin" id="hero-pin">
   <section class="hero" aria-label="VE:LASH">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-ui">
@@ -53,6 +54,7 @@
       </div>
     </div>
   </section>
+  </div>
 
   <div class="tapes" aria-hidden="true">
     <div class="tape tape-a"><div class="marquee-track">
@@ -65,42 +67,43 @@
     </div></div>
   </div>
 
-  <section class="section">
-    <div class="bg-word" data-speed="0.25" aria-hidden="true">NEW DROP</div>
-    <div class="section-head reveal">
-      <div>
-        <p class="section-label">01 / New Arrivals</p>
-        <h2 class="section-title glitch" data-text="New Drop">New Drop</h2>
-      </div>
-      <a class="section-link" href="shop.html">View all items →</a>
+  <!-- SCENE 2: statement, words light up as you scroll -->
+  <section class="statement" id="statement" aria-label="Manifesto">
+    <div class="statement-sticky">
+      <p class="section-label">VE:LASH — Manifesto</p>
+      <p class="statement-text" id="statement-text">We don't follow trends. We <em>create</em> them. Break through the <em>ordinary.</em> Carry scars like medals.</p>
     </div>
-    <div class="ring-stage" id="ring-stage">
-      <div class="ring"></div>
-    </div>
-    <p class="ring-hint"><span class="hint-mouse">DRAG TO SPIN</span><span class="hint-touch">SWIPE TO SPIN</span></p>
   </section>
 
-  <section class="section">
-    <div class="bg-word right" data-speed="-0.2" aria-hidden="true">MANIFESTO</div>
-    <div class="section-head reveal">
-      <div>
-        <p class="section-label">02 / Lookbook</p>
-        <h2 class="section-title glitch" data-text="Street Manifesto">Street<br>Manifesto</h2>
+  <!-- SCENE 3: products glide sideways while you scroll down -->
+  <section class="track" id="track" aria-label="New Drop">
+    <div class="track-sticky">
+      <div class="track-head">
+        <div>
+          <p class="section-label">01 / New Arrivals</p>
+          <h2 class="section-title">New Drop</h2>
+        </div>
+        <a class="section-link" href="shop.html">View all items →</a>
       </div>
-      <a class="section-link" href="collection.html">Collection →</a>
+      <div class="track-rail" id="track-rail"></div>
+      <div class="track-bar" aria-hidden="true"><i id="track-bar"></i></div>
     </div>
-    <div class="look-split">
-      <a class="big reveal" href="collection.html"><img loading="lazy" decoding="async" src="assets/img/hoodie-look-night.webp" srcset="assets/img/hoodie-look-night-640.webp 640w, assets/img/hoodie-look-night.webp 1200w" sizes="(max-width: 900px) 100vw, 50vw" alt="VE:LASH Full-Zip Hoodie ルック"></a>
-      <div class="look-side reveal">
-        <p class="manifesto">
-          Break through the ordinary.<br>
-          We don't follow trends,<br>we <em>create</em> them.<br>
-          Carry scars like <em>medals</em>.
-        </p>
-        <img loading="lazy" decoding="async" src="assets/img/classic-tee-look-night.webp" srcset="assets/img/classic-tee-look-night-640.webp 640w, assets/img/classic-tee-look-night.webp 1000w" sizes="(max-width: 900px) 100vw, 35vw" alt="VE:LASH Classic T-Shirt ルック">
+  </section>
+
+  <!-- SCENE 4: a framed photo grows to full screen -->
+  <section class="zoom" id="zoom" aria-label="Lookbook">
+    <div class="zoom-sticky">
+      <div class="zoom-frame" id="zoom-frame">
+        <img loading="lazy" decoding="async" src="assets/img/hoodie-look-night.webp" srcset="assets/img/hoodie-look-night-640.webp 640w, assets/img/hoodie-look-night.webp 1200w" sizes="100vw" alt="VE:LASH Full-Zip Hoodie ルック">
+      </div>
+      <div class="zoom-copy" id="zoom-copy">
+        <p class="section-label">02 / Lookbook</p>
+        <h2 class="section-title">Street<br>Manifesto</h2>
+        <a class="section-link" href="collection.html">View the lookbook →</a>
       </div>
     </div>
   </section>
+
 
   <section class="section">
     <div class="bg-word" data-speed="0.2" aria-hidden="true">NEWS</div>
@@ -583,7 +586,16 @@ addEventListener('pointermove', (e) => {
   target.set(nx, ny);
 });
 let scrollP = 0;
-addEventListener('scroll', () => { scrollP = Math.min(1, scrollY / innerHeight); }, { passive: true });
+// scroll progress through the pinned hero (0 = top, 1 = hero about to leave)
+const heroPin = document.getElementById('hero-pin');
+const heroUI = hero.querySelector('.hero-ui');
+function readScroll() {
+  const r = heroPin.getBoundingClientRect();
+  scrollP = Math.min(1, Math.max(0, -r.top / Math.max(1, heroPin.offsetHeight - innerHeight)));
+  hero.style.setProperty('--hp', scrollP.toFixed(4));
+}
+addEventListener('scroll', readScroll, { passive: true });
+readScroll();
 
 // hold to warp
 let warpTarget = 0;
@@ -673,7 +685,7 @@ function tick() {
 
   // warp: user hold + automatic burst while the logo flies in
   const introWarp = introStart === null ? 0.6 : (1 - ease) * 1.0;
-  warp += (Math.max(warpTarget, introWarp) - warp) * 0.06;
+  warp += (Math.max(warpTarget, introWarp, scrollP * 0.7) - warp) * 0.06;   // diving in on scroll also speeds the streaks
   shared.uTime.value = t;
   shared.uWarp.value = warp;
 
@@ -688,8 +700,9 @@ function tick() {
   mouse.lerp(target, 0.06);
   logoGroup.scale.setScalar((0.001 + ease * 0.999) * logoScale);
   logoGroup.rotation.y = mouse.x * 0.5 + Math.sin(t * 0.5) * 0.12 + (1 - ease) * Math.PI * 2;
-  logoGroup.rotation.x = mouse.y * 0.3 + scrollP * 0.6;
-  logoGroup.position.y = logoY + Math.sin(t * 0.8) * 0.08 + scrollP * 1.5 + (Math.random() - 0.5) * 0.04 * warp;
+  const hs = scrollP * scrollP * (3 - 2 * scrollP);            // eased scroll progress
+  logoGroup.rotation.x = mouse.y * 0.3 - hs * 0.35;
+  logoGroup.position.y = logoY * (1 - hs) + Math.sin(t * 0.8) * 0.08 + (Math.random() - 0.5) * 0.04 * warp;
 
   nebula.material.color.setScalar(skyLevel * (1 + warp * 0.9));
   nebula.rotation.z = Math.sin(t * 0.03) * 0.04;
@@ -742,17 +755,20 @@ function tick() {
 
   camera.fov = 40 + warp * 18;
   camera.updateProjectionMatrix();
-  camera.position.z = baseZ + (1 - ease) * 10;
+  // scroll: the camera dives toward the logo and through it
+  camera.position.z = baseZ + (1 - ease) * 10 - hs * baseZ * 0.78;
   camera.position.x = mouse.x * 0.4;
   camera.position.y = -mouse.y * 0.25;
-  camera.lookAt(0, 0.3 + scrollP * 0.8, 0);
+  camera.lookAt(0, 0.3 * (1 - hs), 0);
 
   composer.render();
   adapt(now, k >= 1);
 }
 tick();
 </script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/motion.js"></script>
 <script src="assets/js/intro.js"></script>
 </body>
 </html>
