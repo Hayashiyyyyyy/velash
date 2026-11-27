@@ -90,7 +90,7 @@ function renderProductGrid() {
     <article class="product-card reveal">
       <div class="product-media">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.w}w" sizes="(max-width: 900px) 50vw, 33vw" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
+        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.w}w" sizes="(max-width: 900px) 50vw, 33vw" alt="${p.name} ${p.color}" ${p.photo ? 'class="photo" style="object-fit:cover;padding:0"' : ''}></div>
         ${p.hover ? `<img class="hover-look" loading="lazy" decoding="async" src="${IMG}${p.hover.replace('.webp', '-640.webp')}" alt="${p.name} 着用イメージ">` : ''}
         <div class="shine"></div>
       </div>

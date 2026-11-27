@@ -32,7 +32,7 @@ renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x030306);
-scene.fog = new THREE.FogExp2(0x060b1c, 0.045);
+scene.fog = new THREE.FogExp2(0x04060f, 0.032);   // lighter haze -> crisper, darker scene
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -542,13 +542,13 @@ function layoutLogo(w, h) {
   portrait = w / h < 0.9;
   stars.forEach((s) => { s.visible = !portrait; });            // phones: no floating snowflakes (cleaner, less CG)
   wreathPivot.scale.setScalar(portrait ? 2.1 : 1.0);       // wreath must stay readable on a small screen
-  core.visible = ring2.visible = ring.visible = !portrait;  // less clutter around the logo on phones
+  core.visible = ring2.visible = ring.visible = false;      // no rings / wireframe: the logo stands alone
   logoUniforms.uLift.value = portrait ? 1 : 0;
   // phones: cleaner, higher-contrast image (darker sky, less glow / grain / frost / colour fringing)
   fx.uniforms.uClean.value = portrait ? 1 : 0;
   bloom.strength = portrait ? 0.2 : 0.22;
   bloom.radius = portrait ? 0.12 : 0.45;   // tight glow on phones so thin strokes stay crisp
-  skyLevel = portrait ? 0.16 : 1;                              // phones: near-black sky, aurora only a faint trace
+  skyLevel = portrait ? 0.16 : 0.42;                           // deep night sky (aurora as a subtle accent)
   if (!portrait) { logoY = 0.7; logoScale = 1; return; }
   const headline = document.querySelector('.hero-bottom');
   const header = document.querySelector('.site-header');
