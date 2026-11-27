@@ -44,6 +44,14 @@
   <div class="hero-pin" id="hero-pin">
   <section class="hero" aria-label="VE:LASH">
     <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hud" aria-hidden="true">
+      <i class="hud-c tl"></i><i class="hud-c tr"></i><i class="hud-c bl"></i><i class="hud-c br"></i>
+      <i class="hud-scan"></i>
+      <i class="hud-ruler"></i>
+      <div class="hud-read hud-a"><span>VE:LASH // SYS.01</span><span class="hud-time">TYO --:--:--</span></div>
+      <div class="hud-read hud-b"><span>35.6762°N</span><span>139.6503°E</span></div>
+      <div class="hud-read hud-c2"><span class="hud-live">LIVE</span><span class="hud-sig">SIG 98.2%</span></div>
+    </div>
     <div class="hero-ui">
       <p class="hero-tag">[ VE:LASH ] — Holiday Edition 2026 / Collection 01</p>
       <div class="hero-bottom">
@@ -630,7 +638,7 @@ function resize() {
 let logoY = 0.7, logoScale = 1, portrait = false, skyLevel = 1;
 function layoutLogo(w, h) {
   portrait = w / h < 0.9;
-  stars.forEach((s) => { s.visible = !portrait || s.userData.base.y > -1.5; });
+  stars.forEach((s) => { s.visible = !portrait; });            // phones: no floating snowflakes (cleaner, less CG)
   wreathPivot.scale.setScalar(portrait ? 2.1 : 1.0);       // wreath must stay readable on a small screen
   core.visible = ring2.visible = ring.visible = !portrait;  // less clutter around the logo on phones
   logoUniforms.uLift.value = portrait ? 1 : 0;
@@ -638,7 +646,7 @@ function layoutLogo(w, h) {
   fx.uniforms.uClean.value = portrait ? 1 : 0;
   bloom.strength = portrait ? 0.32 : 0.45;
   bloom.radius = portrait ? 0.12 : 0.45;   // tight glow on phones so thin strokes stay crisp
-  skyLevel = portrait ? 0.55 : 1;
+  skyLevel = portrait ? 0.16 : 1;                              // phones: near-black sky, aurora only a faint trace
   if (!portrait) { logoY = 0.7; logoScale = 1; return; }
   const headline = document.querySelector('.hero-bottom');
   const header = document.querySelector('.site-header');
@@ -778,6 +786,7 @@ tick();
 <script src="assets/js/fx3.js"></script>
 <script src="assets/js/fx4.js"></script>
 <script src="assets/js/fx5.js"></script>
+<script src="assets/js/fx6.js"></script>
 <script src="assets/js/intro.js"></script>
 </body>
 </html>

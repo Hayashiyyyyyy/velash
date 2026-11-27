@@ -205,3 +205,84 @@
 @media (prefers-reduced-motion: reduce) {
   .product-media .hover-look, .t-media .t-hover { animation: none; }
 }
+
+/* =========================================================
+   FX 6: near-future HUD, back-to-top ring, footer clock, scrollbar, selection
+   ========================================================= */
+::selection { background: var(--accent); color: #fff; }
+html { scrollbar-width: thin; scrollbar-color: rgba(255, 47, 142, .7) #07070b; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #07070b; }
+::-webkit-scrollbar-thumb { background: linear-gradient(#ff2f8e, #7fd8ff); border-radius: 8px; border: 2px solid #07070b; }
+
+/* HUD overlay on the hero */
+.hud { position: absolute; inset: 0; z-index: 1; pointer-events: none; font-family: var(--mono); color: rgba(236, 235, 242, .7); opacity: calc(1 - var(--hp, 0) * 2.4); }
+.hud-c { position: absolute; width: 22px; height: 22px; border-color: rgba(236, 235, 242, .55); border-style: solid; border-width: 0; }
+.hud-c.tl { left: 20px; top: 92px; border-left-width: 1px; border-top-width: 1px; }
+.hud-c.tr { right: 20px; top: 92px; border-right-width: 1px; border-top-width: 1px; }
+.hud-c.bl { left: 20px; bottom: 20px; border-left-width: 1px; border-bottom-width: 1px; }
+.hud-c.br { right: 20px; bottom: 20px; border-right-width: 1px; border-bottom-width: 1px; }
+.hud-read { position: absolute; display: flex; flex-direction: column; gap: 3px; font-size: 10px; letter-spacing: .18em; line-height: 1.4; }
+.hud-a { left: 52px; top: 100px; }
+.hud-b { right: 52px; top: 100px; text-align: right; }
+.hud-c2 { right: 52px; top: 140px; text-align: right; flex-direction: row; gap: 12px; justify-content: flex-end; }
+.hud-time { color: var(--fg); }
+.hud-live { color: var(--accent); }
+.hud-live::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--accent); vertical-align: 1px; animation: hud-blink 1.2s steps(2) infinite; }
+@keyframes hud-blink { 50% { opacity: 0; } }
+.hud-scan {
+  position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(127, 216, 255, .55) 30%, rgba(255, 47, 142, .55) 70%, transparent);
+  box-shadow: 0 0 12px rgba(127, 216, 255, .5); opacity: .7;
+  animation: hud-scan 7s linear infinite;
+}
+@keyframes hud-scan { 0% { transform: translateY(0); opacity: 0; } 8% { opacity: .7; } 92% { opacity: .7; } 100% { transform: translateY(100vh); opacity: 0; } }
+.hud-ruler {
+  position: absolute; right: 22px; top: 32%; height: 36%; width: 8px;
+  background: repeating-linear-gradient(to bottom, rgba(236, 235, 242, .5) 0 1px, transparent 1px 12px);
+  -webkit-mask: linear-gradient(transparent, #000 20%, #000 80%, transparent); mask: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+}
+.hud-ruler::after { content: ""; position: absolute; right: 0; width: 16px; height: 1px; background: var(--accent); top: 50%; box-shadow: 0 0 8px var(--accent); animation: hud-ruler 4s ease-in-out infinite alternate; }
+@keyframes hud-ruler { from { top: 15%; } to { top: 85%; } }
+
+/* footer clock */
+.ft-clock { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); letter-spacing: .14em; }
+.ft-clock i { width: 6px; height: 6px; border-radius: 50%; background: #3dffa8; box-shadow: 0 0 8px #3dffa8; animation: hud-blink 1.6s steps(2) infinite; }
+
+/* back to top with progress ring (desktop) */
+.to-top {
+  position: fixed; left: 28px; bottom: 28px; z-index: 70; width: 54px; height: 54px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--fg);
+  background: rgba(10, 10, 16, .55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  opacity: 0; transform: translateY(20px) scale(.9); pointer-events: none;
+  transition: opacity .4s, transform .6s cubic-bezier(.16, 1, .3, 1), background .3s;
+}
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { background: rgba(255, 47, 142, .18); }
+.to-top svg { position: absolute; inset: 0; width: 100%; height: 100%; rotate: -90deg; }
+.to-top circle { fill: none; stroke-width: 1.5; }
+.tt-bg { stroke: rgba(236, 235, 242, .15); }
+.tt-fg { stroke: var(--accent); stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(255, 47, 142, .7)); }
+.to-top span { font-family: var(--mono); font-size: 16px; transition: translate .4s cubic-bezier(.16, 1, .3, 1); }
+.to-top:hover span { translate: 0 -3px; }
+
+/* phones: precise near-future look instead of soft CG glow */
+@media (max-width: 900px), (pointer: coarse) {
+  .hud-c.tl, .hud-c.tr { top: 80px; }
+  .hud-c.tl, .hud-c.bl { left: 12px; }
+  .hud-c.tr, .hud-c.br { right: 12px; }
+  .hud-c { width: 16px; height: 16px; }
+  .hud-a { left: 36px; top: 86px; font-size: 9px; }
+  .hud-b { right: 36px; top: 86px; font-size: 9px; }
+  .hud-c2 { right: 36px; top: 118px; font-size: 9px; }
+  .hud-ruler { right: 14px; }
+  /* drop the soft glow blobs and background snow on every page; keep a fine technical grid */
+  .backdrop .blob, .backdrop .snow, .backdrop::after { display: none; }
+  .backdrop .grid {
+    background-image: linear-gradient(rgba(236, 235, 242, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(236, 235, 242, .05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .section-label::before { box-shadow: none; border-radius: 1px; }
+}
+@media (prefers-reduced-motion: reduce) { .hud-scan, .hud-ruler::after { animation: none; } }
+@media (min-width: 901px) { .site-footer { padding-bottom: 120px; } }
