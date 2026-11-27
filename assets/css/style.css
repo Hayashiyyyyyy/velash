@@ -909,3 +909,18 @@ main { position: relative; z-index: 1; }
     linear-gradient(90deg, rgba(140,215,255,.55) 1.5px, transparent 1.5px);
 }
 @media (prefers-reduced-motion: reduce) { .backdrop::after { animation: none; } }
+
+/* =========================================================
+   BASE store items: hover look photo, buy link, coming soon
+   ========================================================= */
+a.add-btn, span.add-btn { display: block; }
+.add-btn.is-disabled { opacity: .45; cursor: not-allowed; border-style: dashed; }
+.add-btn.is-disabled:hover { background: none; color: inherit; }
+.product-media .hover-look {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
+  opacity: 0; transition: opacity .5s ease; pointer-events: none;
+}
+.product-card:hover .hover-look { opacity: 1; }
+.badge { z-index: 3; }
+.cart-btn { text-decoration: none; }
+@media (hover: none) { .product-media .hover-look { display: none; } }

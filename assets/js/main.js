@@ -2,15 +2,20 @@
 
 const IMG = 'assets/img/';
 
+const BASE_URL = 'https://velash.base.shop/';
+const IG_URL = 'https://www.instagram.com/ve_lash_official/';
+
+// in-stock items mirror the BASE store (prices/links from velash.base.shop); sweats are not on BASE yet
 const PRODUCTS = [
-  { id: 'sweat-black', name: 'Graffiti Logo Crew Sweat', color: 'Black', img: 'sweat-black.webp', price: null, badge: 'NEW', swatch: '#111' },
-  { id: 'sweat-navy',  name: 'Graffiti Logo Crew Sweat', color: 'Navy',  img: 'sweat-navy.webp',  price: null, badge: 'NEW', swatch: '#1b2340' },
-  { id: 'sweat-pink',  name: 'Graffiti Logo Crew Sweat', color: 'Pink',  img: 'sweat-pink.webp',  price: null, badge: 'NEW', swatch: '#f2a6c8' },
-  { id: 'tee-manifesto', name: 'Manifesto Tee', color: 'Black', img: 'look-tee.webp', price: null, swatch: '#111', photo: true },
-  { id: 'tee-heart', name: 'Heart Camo Tee', color: 'White', img: 'look-street.webp', price: null, swatch: '#f4f4f4', photo: true },
+  { id: 'hoodie', name: 'VE:LASH Full-Zip Hoodie', color: 'Black', img: 'hoodie-flat-front.webp', hover: 'hoodie-look-night.webp', price: 9000, sizes: 'S / M / L', swatch: '#111', photo: true, w: 1000, url: BASE_URL + 'items/142651814' },
+  { id: 'heart-tee', name: 'VE:LASH Heart Logo T-Shirt', color: 'White', img: 'heart-tee.webp', hover: 'heart-tee-look2.webp', price: 4500, sizes: 'S / M / L', swatch: '#f4f4f4', w: 1200, url: BASE_URL + 'items/156145271' },
+  { id: 'classic-tee', name: 'VE:LASH Classic T-Shirt', color: 'Black', img: 'classic-tee.webp', hover: 'classic-tee-look.webp', price: 4500, sizes: 'S / M / L', swatch: '#111', w: 1200, url: BASE_URL + 'items/156146666' },
+  { id: 'sweat-black', name: 'Graffiti Logo Crew Sweat', color: 'Black', img: 'sweat-black.webp', price: null, badge: 'COMING SOON', sizes: 'S / M / L / XL', swatch: '#111', w: 1200 },
+  { id: 'sweat-navy',  name: 'Graffiti Logo Crew Sweat', color: 'Navy',  img: 'sweat-navy.webp',  price: null, badge: 'COMING SOON', sizes: 'S / M / L / XL', swatch: '#1b2340', w: 1200 },
+  { id: 'sweat-pink',  name: 'Graffiti Logo Crew Sweat', color: 'Pink',  img: 'sweat-pink.webp',  price: null, badge: 'COMING SOON', sizes: 'S / M / L / XL', swatch: '#f2a6c8', w: 1200 },
 ];
 
-const fmtPrice = (p) => (p == null ? 'PRICE TBA' : '¥' + p.toLocaleString('ja-JP'));
+const fmtPrice = (p) => (p == null ? 'COMING SOON' : '¥' + p.toLocaleString('ja-JP'));
 
 /* ---------- header / footer / cart ---------- */
 function renderChrome() {
@@ -32,12 +37,12 @@ function renderChrome() {
       <p class="nav-head" aria-hidden="true"><span>// NAVIGATION</span><span>VE:LASH</span></p>
       ${nav.map(([href, label, key], i) => `<a href="${href}" style="--i:${i}"${key === page ? ' aria-current="page"' : ''}><span class="nl" data-text="${label}">${label}</span></a>`).join('')}
       <div class="nav-foot">
-        <div class="nav-social"><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">X</a></div>
+        <div class="nav-social"><a href="${IG_URL}" target="_blank" rel="noopener">Instagram ↗</a><a href="${BASE_URL}" target="_blank" rel="noopener">Online Store ↗</a></div>
         <div class="nav-tape" aria-hidden="true"><div class="marquee-track"><span>MERRY CHRISTMAS ✶ BREAK THROUGH THE ORDINARY ✶ VE:LASH HOLIDAY ✶&nbsp;</span><span>MERRY CHRISTMAS ✶ BREAK THROUGH THE ORDINARY ✶ VE:LASH HOLIDAY ✶&nbsp;</span></div></div>
       </div>
     </nav>
     <div style="display:flex;gap:20px;align-items:center">
-      <button class="cart-btn" id="cart-open">CART (<span id="cart-count">0</span>)</button>
+      <a class="cart-btn" href="${BASE_URL}" target="_blank" rel="noopener">STORE ↗</a>
       <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">MENU</button>
     </div>`;
   document.body.prepend(header);
@@ -58,7 +63,7 @@ function renderChrome() {
       </div>
       <div class="footer-nav">
         <ul><li>SITE</li><li><a href="index.html">Home</a></li><li><a href="collection.html">Collection</a></li><li><a href="shop.html">Shop</a></li><li><a href="news.html">News</a></li><li><a href="contact.html">Contact</a></li></ul>
-        <ul><li>SOCIAL</li><li><a href="#">Instagram</a></li><li><a href="#">TikTok</a></li><li><a href="#">X</a></li></ul>
+        <ul><li>SOCIAL</li><li><a href="${IG_URL}" target="_blank" rel="noopener">Instagram ↗</a></li><li><a href="${BASE_URL}" target="_blank" rel="noopener">Online Store ↗</a></li></ul>
       </div>
     </div>    <div class="footer-bottom"><span>&copy; VE:LASH</span><span>BREAK THROUGH THE ORDINARY</span></div>`;
   document.body.append(footer);
@@ -81,7 +86,7 @@ function renderChrome() {
 
   const open = () => { drawer.classList.add('open'); scrim.classList.add('show'); };
   const close = () => { drawer.classList.remove('open'); scrim.classList.remove('show'); };
-  document.getElementById('cart-open').onclick = open;
+  const cartOpen = document.getElementById('cart-open'); if (cartOpen) cartOpen.onclick = open;
   document.getElementById('cart-close').onclick = close;
   scrim.onclick = close;
   window.openCart = open;
@@ -146,14 +151,17 @@ function renderProductGrid() {
     <article class="product-card reveal">
       <div class="product-media">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.photo ? 1000 : 1200}w" sizes="(max-width: 900px) 50vw, 33vw" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
+        <div class="tilt"><img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.w}w" sizes="(max-width: 900px) 50vw, 33vw" alt="${p.name} ${p.color}" ${p.photo ? 'style="object-fit:cover;padding:0"' : ''}></div>
+        ${p.hover ? `<img class="hover-look" loading="lazy" decoding="async" src="${IMG}${p.hover.replace('.webp', '-640.webp')}" alt="${p.name} 着用イメージ">` : ''}
         <div class="shine"></div>
       </div>
       <div class="product-info">
         <h3 class="product-name">${p.name}</h3>
         <div class="product-row"><span>${p.color}</span><span>${fmtPrice(p.price)}</span></div>
-        <div class="product-row"><div class="swatches"><i style="background:${p.swatch}"></i></div><span>S / M / L / XL</span></div>
-        <button class="add-btn" onclick="addToCart('${p.id}')">Add to cart</button>
+        <div class="product-row"><div class="swatches"><i style="background:${p.swatch}"></i></div><span>${p.sizes}</span></div>
+        ${p.url
+          ? `<a class="add-btn" href="${p.url}" target="_blank" rel="noopener">Buy on BASE ↗</a>`
+          : `<span class="add-btn is-disabled" aria-disabled="true">Coming soon</span>`}
       </div>
     </article>`).join('');
 
@@ -182,7 +190,7 @@ function initRing() {
   const w = ring.offsetWidth;
   const radius = Math.round((w / 2) / Math.tan(Math.PI / n)) + 60;
   ring.innerHTML = items.map((p, i) => `
-    <a class="ring-item" href="shop.html" style="transform:rotateY(${(360 / n) * i}deg) translateZ(${radius}px)">
+    <a class="ring-item" href="${p.url || 'shop.html'}"${p.url ? ' target="_blank" rel="noopener"' : ''} style="transform:rotateY(${(360 / n) * i}deg) translateZ(${radius}px)">
       <img loading="lazy" decoding="async" src="${IMG}${p.img.replace('.webp', '-640.webp')}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
       <span class="cap"><span>${p.name.toUpperCase()}</span><span>${p.color.toUpperCase()}</span></span>
     </a>`).join('');
