@@ -46,7 +46,16 @@ function renderChrome() {
       <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">MENU</button>
     </div>`;
   document.body.prepend(header);
-  const onScroll = () => header.classList.toggle("scrolled", scrollY > 40);
+  // floating store button (phones), appears once you've scrolled past the first screen
+  const fab = document.createElement('a');
+  fab.className = 'fab-store';
+  fab.href = BASE_URL; fab.target = '_blank'; fab.rel = 'noopener';
+  fab.innerHTML = '<span class="fab-dot"></span>ONLINE STORE<span class="fab-arrow">↗</span>';
+  document.body.append(fab);
+  const onScroll = () => {
+    header.classList.toggle("scrolled", scrollY > 40);
+    fab.classList.toggle("show", scrollY > innerHeight * 0.7);
+  };
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
