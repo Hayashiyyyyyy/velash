@@ -372,9 +372,9 @@ function addSnow(count, size, zMin, zMax, speed, opacity) {
   scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ map: flake, size, transparent: true, depthWrite: false, opacity, color: 0xf2f8ff })));
   snowLayers.push({ count, pos, vel, geo, zMin, zMax });
 }
-addSnow(lite ? 420 : 800, 0.12, -24, -4, 0.7, 0.85);   // far, fine
-addSnow(lite ? 160 : 260, 0.2, -6, 3, 1.0, 0.95);      // mid
-addSnow(lite ? 40 : 70, 0.42, 2, 7, 1.4, 0.75);        // near, big soft flakes
+addSnow(lite ? 220 : 800, 0.12, -24, -4, 0.7, 0.85);   // far, fine
+addSnow(lite ? 90 : 260, 0.2, -6, 3, 1.0, 0.95);      // mid
+addSnow(lite ? 18 : 70, 0.42, 2, 7, 1.4, 0.75);        // near, big soft flakes
 
 /* ---------- WINTER: floating ice-crystal snowflakes (six arms with branches) ---------- */
 const starGeo = (() => {
@@ -437,7 +437,7 @@ ring2.position.z = -2;
 // (secondary green ring no longer added)
 
 /* ---------- light streaks ---------- */
-const SCOUNT = lite ? 160 : 320;
+const SCOUNT = lite ? 110 : 320;
 const sPos = new Float32Array(SCOUNT * 6);
 const sCol = new Float32Array(SCOUNT * 6);
 const streaks = [];
@@ -553,6 +553,7 @@ function layoutLogo(w, h) {
   stars.forEach((s) => { s.visible = !portrait; });            // phones: no floating snowflakes (cleaner, less CG)
   wreathPivot.scale.setScalar(portrait ? 2.1 : 1.0);       // wreath must stay readable on a small screen
   core.visible = ring2.visible = ring.visible = false;      // no rings / wireframe: the logo stands alone
+  floor.visible = !portrait;                                 // phones: pure black void, logo only (no neon grid)
   logoUniforms.uLift.value = portrait ? 1 : 0;
   // phones: cleaner, higher-contrast image (darker sky, less glow / grain / frost / colour fringing)
   fx.uniforms.uClean.value = portrait ? 1 : 0;
@@ -566,7 +567,7 @@ function layoutLogo(w, h) {
   const bottom = (headline ? headline.offsetTop : h * 0.6) - 24;
   const pxPerWorld = h / (2 * baseZ * Math.tan(THREE.MathUtils.degToRad(20)));
   const availH = Math.max(60, bottom - top);
-  logoScale = Math.min(1.6, (w * 1.2) / (LOGO_W * pxPerWorld), (availH * 1.0) / (LOGO_H * pxPerWorld)); // letters bigger; spike tips may run off the edges
+  logoScale = Math.min(1.9, (w * 1.34) / (LOGO_W * pxPerWorld), (availH * 1.1) / (LOGO_H * pxPerWorld)); // letters bigger; spike tips may run off the edges
   const centerPx = top + (bottom - top) * 0.62; // sit a little low in the band, closer to the headline
   logoY = 0.3 + (h / 2 - centerPx) / pxPerWorld;
 }
@@ -590,7 +591,7 @@ function adapt(now, ready) {
   const fps = frames / (now - fpsT0);
   fpsT0 = now; frames = 0;
   if (fps < 45 && pr > 1) {
-    pr = Math.max(1, pr - 0.25);
+    pr = Math.max(lite ? 1.5 : 1, pr - 0.25);   // phones never drop below 1.5x (stays sharp)
     renderer.setPixelRatio(pr);
     composer.setPixelRatio(pr);
     resize();
