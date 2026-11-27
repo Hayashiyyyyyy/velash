@@ -196,7 +196,7 @@ const nebulaMat = new THREE.ShaderMaterial({
       float rays = 0.45 + 0.55 * noise(vec2(vUv.x * 70.0, 0.5)) * noise(vec2(vUv.x * 13.0, 3.0));
       vec3 aurora = mix(vec3(0.15, 1.0, 0.55), vec3(0.3, 0.85, 1.0), smoothstep(0.3, 0.8, vUv.x));
       col += aurora * curtain * rays * 0.4 * smoothstep(0.05, 0.35, fbm(vec2(vUv.x * 3.0, 1.0)));
-      col += mix(ice, pink, 0.3) * 0.32 * exp(-abs(vUv.y - 0.42) * 14.0); // horizon glow
+      col += mix(ice, pink, 0.3) * 0.16 * exp(-abs(vUv.y - 0.42) * 14.0); // horizon glow
       vec2 g = vUv * vec2(480.0, 270.0);
       col += vec3(step(0.9975, hash(floor(g))) * 0.8);      // stars
       // full moon with a soft halo
@@ -209,12 +209,11 @@ const nebulaMat = new THREE.ShaderMaterial({
         float fk = float(k);
         float h = 0.405 + 0.012 * fk + (0.085 - 0.018 * fk) * fbm(vec2(vUv.x * (3.0 + fk * 2.3) + fk * 7.1, fk * 3.7));
         if (vUv.y < h) {
-          vec3 rock = mix(vec3(0.2, 0.27, 0.45), vec3(0.06, 0.08, 0.17), fk / 2.0);
+          vec3 rock = mix(vec3(0.07, 0.09, 0.18), vec3(0.02, 0.03, 0.07), fk / 2.0);
           float slope = fbm(vec2(vUv.x * 40.0, vUv.y * 40.0 + fk));
           float snowline = h - (0.03 + 0.03 * slope);
-          vec3 snowc = mix(vec3(0.68, 0.76, 0.92), vec3(0.42, 0.5, 0.68), fk / 2.0);
+          vec3 snowc = mix(vec3(0.42, 0.5, 0.7), vec3(0.2, 0.25, 0.38), fk / 2.0);
           col = mix(rock, snowc, smoothstep(snowline - 0.006, snowline + 0.004, vUv.y));
-          col = mix(col, vec3(0.12, 0.16, 0.3), smoothstep(h - 0.02, h - 0.09, vUv.y) * 0.6); // haze at the foot
         }
       }
       gl_FragColor = vec4(col, 1.0);
@@ -287,36 +286,34 @@ const groundH = (x, z) => {
   const pa = g.attributes.position;
   for (let i = 0; i < pa.count; i++) pa.setY(i, groundH(pa.getX(i), pa.getZ(i)));
   g.computeVertexNormals();
-  const snowField = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xa9bbd6, roughness: 0.92, metalness: 0 }));
+  const snowField = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x6a7a99, roughness: 0.95, metalness: 0 }));
   scene.add(snowField);
 
-  // fir trees: dark foliage tiers + white snow caps (two instanced meshes, a few draw calls total)
-  const tiers = [[1.0, 1.5, 1.05], [0.8, 1.3, 1.85], [0.56, 1.05, 2.55]];
-  const fol = [new THREE.CylinderGeometry(0.1, 0.13, 0.6, 6).translate(0, 0.3, 0)];
-  const caps = [];
-  tiers.forEach(([r, h, y]) => {
-    fol.push(new THREE.ConeGeometry(r, h, 8).translate(0, y, 0));
-    caps.push(new THREE.ConeGeometry(r * 0.72, h * 0.5, 8).translate(0, y + h * 0.26, 0));
-  });
-  const folGeo = mergeGeometries(fol), capGeo = mergeGeometries(caps);
+  // fir trees as dark silhouettes: tall, narrow, many jagged tiers; fog fades distant ones into the night
+  const fol = [new THREE.CylinderGeometry(0.06, 0.09, 0.7, 5).translate(0, 0.35, 0)];
+  const TIERS = 7;
+  for (let k = 0; k < TIERS; k++) {
+    const f = k / (TIERS - 1);
+    const r = 0.95 * (1 - f * 0.85), h = 0.9 - f * 0.35, y = 0.75 + f * 3.1;
+    fol.push(new THREE.ConeGeometry(r, h, 7).translate(0, y, 0));
+  }
+  const folGeo = mergeGeometries(fol.map((g) => (g.index ? g.toNonIndexed() : g)));
   const TREES = lite ? 46 : 90;
-  const folMesh = new THREE.InstancedMesh(folGeo, new THREE.MeshStandardMaterial({ color: 0x0e2a22, roughness: 0.9 }), TREES);
-  const capMesh = new THREE.InstancedMesh(capGeo, new THREE.MeshStandardMaterial({ color: 0xdfe9f7, roughness: 0.85 }), TREES);
+  const folMesh = new THREE.InstancedMesh(folGeo, new THREE.MeshBasicMaterial({ color: 0x03050b }), TREES);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3();
   for (let i = 0; i < TREES; i++) {
     const side = i % 2 ? 1 : -1;
     const x = side * (8 + Math.random() * 30), z = 4 - Math.random() * 52;
-    pos.set(x, groundH(x, z) - 0.1, z);
+    pos.set(x, groundH(x, z) - 0.15, z);
     q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * 6.28);
-    const s = 0.8 + Math.random() * 1.1; sc.set(s, s * (0.9 + Math.random() * 0.4), s);
-    m4.compose(pos, q, sc);
-    folMesh.setMatrixAt(i, m4); capMesh.setMatrixAt(i, m4);
+    const s = 0.7 + Math.random() * 1.0; sc.set(s, s * (0.85 + Math.random() * 0.6), s);
+    folMesh.setMatrixAt(i, m4.compose(pos, q, sc));
   }
-  scene.add(folMesh, capMesh);
+  scene.add(folMesh);
 
-  // moonlight + cold sky fill so the snow reads as a night landscape
-  const moon = new THREE.DirectionalLight(0xc8dcff, 1.1); moon.position.set(12, 14, -30);
-  scene.add(moon, new THREE.HemisphereLight(0x7fa6ff, 0x141a30, 0.55));
+  // moonlight + cold sky fill (kept low so the scene stays dark and the logo pops)
+  const moon = new THREE.DirectionalLight(0xc8dcff, 0.9); moon.position.set(12, 14, -30);
+  scene.add(moon, new THREE.HemisphereLight(0x6f8fd8, 0x0a0e1c, 0.32));
 }
 
 /* ---------- logo (stacked slices) ---------- */
@@ -606,7 +603,7 @@ scene.add(streakLines);
 // MSAA on the main render target when the screen isn't already high-density (removes jaggies)
 const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: MAX_PR < 1.75 ? 4 : 0 }));
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.45, 0.45, 0.85);
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.42, 0.4, 0.9);
 // glow is soft anyway: compute it at half resolution (big saving, no visible loss)
 const bloomSetSize = bloom.setSize.bind(bloom);
 bloom.setSize = (w, h) => bloomSetSize(Math.round(w * 0.5), Math.round(h * 0.5));
@@ -638,7 +635,7 @@ const fx = new ShaderPass({
       // frost creeping in from the screen edges
       float edge = smoothstep(0.42, 0.78, length(dir * vec2(1.25, 1.0)));
       float crystals = 0.6 + 0.4 * hash(floor(uv * uRes / 14.0));
-      col = mix(col, vec3(0.78, 0.9, 1.0), edge * crystals * 0.09);
+      col = mix(col, vec3(0.78, 0.9, 1.0), edge * crystals * 0.04);
       col *= smoothstep(1.15, 0.35, length(dir * vec2(1.2, 1.0)));
       gl_FragColor = vec4(col, 1.0);
     }`,
@@ -687,6 +684,8 @@ let logoY = 0.7, logoScale = 1, portrait = false;
 function layoutLogo(w, h) {
   portrait = w / h < 0.9;
   stars.forEach((s) => { s.visible = !portrait || s.userData.base.y > -1.5; });
+  core.visible = ring2.visible = !portrait;                 // less clutter around the logo on phones
+  wreathPivot.scale.setScalar(portrait ? 1.7 : 1.0);       // wreath must stay readable on a small screen
   if (!portrait) { logoY = 0.7; logoScale = 1; return; }
   const headline = document.querySelector('.hero-bottom');
   const header = document.querySelector('.site-header');
@@ -694,7 +693,7 @@ function layoutLogo(w, h) {
   const bottom = (headline ? headline.offsetTop : h * 0.6) - 24;
   const pxPerWorld = h / (2 * baseZ * Math.tan(THREE.MathUtils.degToRad(20)));
   const availH = Math.max(60, bottom - top);
-  logoScale = Math.min(1, (w * 0.84) / (LOGO_W * pxPerWorld), (availH * 0.8) / (LOGO_H * pxPerWorld));
+  logoScale = Math.min(1.25, (w * 0.98) / (LOGO_W * pxPerWorld), (availH * 1.0) / (LOGO_H * pxPerWorld));
   const centerPx = top + (bottom - top) * 0.62; // sit a little low in the band, closer to the headline
   logoY = 0.3 + (h / 2 - centerPx) / pxPerWorld;
 }

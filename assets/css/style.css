@@ -725,7 +725,7 @@ main { position: relative; z-index: 1; }
   /* hero: headline pinned to the bottom, 3D logo lives in the upper half */
   .hero-ui { grid-template-rows: 1fr auto; padding: 72px 18px 22px; }
   .hero-bottom { grid-row: 2; gap: 14px; }
-  .hero-copy { font-size: clamp(36px, 11vw, 60px); line-height: .95; }
+  .hero-copy { font-size: clamp(30px, 9.4vw, 54px); line-height: .95; }
   .hero::after { height: 58%; background: linear-gradient(to top, rgba(3,3,6,.94) 0%, rgba(3,3,6,.75) 45%, rgba(3,3,6,0) 100%); }
   .hero-meta { line-height: 1.9; }
 
