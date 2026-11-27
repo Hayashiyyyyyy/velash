@@ -69,3 +69,19 @@
   .fab-store:active { scale: .94; }
   .look-card:active, .product-media:active { scale: .98; }
 }
+
+/* =========================================================
+   FX 3 (phones): auto-hiding header, tap ripple, rise
+   ========================================================= */
+@media (max-width: 900px), (pointer: coarse) {
+  .site-header { transition: translate .5s cubic-bezier(.16, 1, .3, 1), padding .3s; }
+  .site-header.is-hidden { translate: 0 calc(-100% - 20px); }
+  .look-card, .product-card, .news-item, .look-split .big, .look-side > img, .contact-info dl, .viewer-stage { will-change: rotate, scale; }
+  .t-card { transition: none; }
+  .ripple {
+    position: absolute; border-radius: 50%; pointer-events: none; z-index: 0;
+    background: radial-gradient(circle, rgba(255, 47, 142, .45) 0%, rgba(255, 47, 142, .18) 40%, transparent 70%);
+    transform: scale(0); animation: ripple .7s cubic-bezier(.16, 1, .3, 1) forwards;
+  }
+  @keyframes ripple { to { transform: scale(1); opacity: 0; } }
+}
