@@ -46,16 +46,7 @@ function renderChrome() {
       <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">MENU</button>
     </div>`;
   document.body.prepend(header);
-  // floating store button (phones), appears once you've scrolled past the first screen
-  const fab = document.createElement('a');
-  fab.className = 'fab-store';
-  fab.href = BASE_URL; fab.target = '_blank'; fab.rel = 'noopener';
-  fab.innerHTML = '<span class="fab-dot"></span>ONLINE STORE<span class="fab-arrow">↗</span>';
-  document.body.append(fab);
-  const onScroll = () => {
-    header.classList.toggle("scrolled", scrollY > 40);
-    fab.classList.toggle("show", scrollY > innerHeight * 0.7);
-  };
+  const onScroll = () => header.classList.toggle("scrolled", scrollY > 40);
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
@@ -77,28 +68,6 @@ function renderChrome() {
     </div>    <div class="footer-bottom"><span>&copy; VE:LASH</span><span>BREAK THROUGH THE ORDINARY</span></div>`;
   document.body.append(footer);
 
-  const drawer = document.createElement('aside');
-  drawer.className = 'cart-drawer';
-  drawer.id = 'cart';
-  drawer.setAttribute('aria-label', 'カート');
-  drawer.innerHTML = `
-    <div class="cart-head"><span>CART</span><button id="cart-close">CLOSE</button></div>
-    <div class="cart-items" id="cart-items"></div>
-    <div class="cart-foot">
-      <div class="cart-total"><span>SUBTOTAL</span><span id="cart-total">-</span></div>
-      <button class="add-btn" onclick="alert('試作版のため決済には進みません。Shopify連携後にチェックアウトへ遷移します。')">CHECKOUT</button>
-      <p class="cart-note">* 試作版です。本番ではShopifyのカート・決済に接続します。</p>
-    </div>`;
-  const scrim = document.createElement('div');
-  scrim.className = 'scrim';
-  document.body.append(drawer, scrim);
-
-  const open = () => { drawer.classList.add('open'); scrim.classList.add('show'); };
-  const close = () => { drawer.classList.remove('open'); scrim.classList.remove('show'); };
-  const cartOpen = document.getElementById('cart-open'); if (cartOpen) cartOpen.onclick = open;
-  document.getElementById('cart-close').onclick = close;
-  scrim.onclick = close;
-  window.openCart = open;
 
   const menuBtn = document.getElementById('menu-btn');
   const siteNav = document.getElementById('site-nav');
@@ -111,45 +80,6 @@ function renderChrome() {
   menuBtn.onclick = () => setMenu(!siteNav.classList.contains('open'));
   siteNav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
-}
-
-/* ---------- cart (localStorage) ---------- */
-const CART_KEY = 'velash-cart';
-const getCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-const setCart = (c) => { localStorage.setItem(CART_KEY, JSON.stringify(c)); renderCart(); };
-
-function addToCart(id, size = 'M') {
-  const p = PRODUCTS.find((x) => x.id === id);
-  if (!p) return;
-  const cart = getCart();
-  const line = cart.find((l) => l.id === id && l.size === size);
-  if (line) line.qty++; else cart.push({ id, size, qty: 1 });
-  setCart(cart);
-  window.openCart();
-}
-window.addToCart = addToCart;
-
-function renderCart() {
-  const cart = getCart();
-  const count = cart.reduce((s, l) => s + l.qty, 0);
-  const countEl = document.getElementById('cart-count');
-  if (countEl) countEl.textContent = count;
-  const wrap = document.getElementById('cart-items');
-  if (!wrap) return;
-  if (!cart.length) { wrap.innerHTML = '<p class="cart-empty">カートは空です。</p>'; document.getElementById('cart-total').textContent = '-'; return; }
-  wrap.innerHTML = cart.map((l, i) => {
-    const p = PRODUCTS.find((x) => x.id === l.id);
-    return `<div class="cart-line">
-      <img loading="lazy" decoding="async" src="${IMG}${p.img}" alt="">
-      <div>${p.name}<small>${p.color} / ${l.size} / x${l.qty}</small></div>
-      <button data-rm="${i}" aria-label="削除" style="font-family:var(--mono);font-size:11px">REMOVE</button>
-    </div>`;
-  }).join('');
-  wrap.querySelectorAll('[data-rm]').forEach((b) => b.onclick = () => { const c = getCart(); c.splice(+b.dataset.rm, 1); setCart(c); });
-  const allPriced = cart.every((l) => PRODUCTS.find((x) => x.id === l.id).price != null);
-  document.getElementById('cart-total').textContent = allPriced
-    ? fmtPrice(cart.reduce((s, l) => s + PRODUCTS.find((x) => x.id === l.id).price * l.qty, 0))
-    : 'TBA';
 }
 
 /* ---------- product grid ---------- */
@@ -186,40 +116,6 @@ function renderProductGrid() {
       m.style.setProperty('--my', `${(y + 0.5) * 100}%`);
     });
     m.addEventListener('pointerleave', () => { tilt.style.transform = ''; });
-  });
-}
-
-/* ---------- CSS 3D ring carousel ---------- */
-function initRing() {
-  const stage = document.getElementById('ring-stage');
-  if (!stage) return;
-  const ring = stage.querySelector('.ring');
-  const items = [...PRODUCTS, ...PRODUCTS.slice(0, 3)];
-  const n = items.length;
-  const w = ring.offsetWidth;
-  const radius = Math.round((w / 2) / Math.tan(Math.PI / n)) + 60;
-  ring.innerHTML = items.map((p, i) => `
-    <a class="ring-item" href="${p.url || 'shop.html'}"${p.url ? ' target="_blank" rel="noopener"' : ''} style="transform:rotateY(${(360 / n) * i}deg) translateZ(${radius}px)">
-      <img loading="lazy" decoding="async" src="${IMG}${p.img.replace('.webp', '-640.webp')}" alt="${p.name}" style="${p.photo ? '' : 'object-fit:contain;padding:10%'}">
-      <span class="cap"><span>${p.name.toUpperCase()}</span><span>${p.color.toUpperCase()}</span></span>
-    </a>`).join('');
-
-  let rot = 0, vel = 0.12, dragging = false, lastX = 0, moved = 0;
-  stage.addEventListener('pointerdown', (e) => { dragging = true; moved = 0; lastX = e.clientX; stage.classList.add('dragging'); stage.setPointerCapture(e.pointerId); });
-  stage.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const dx = e.clientX - lastX; lastX = e.clientX; moved += Math.abs(dx);
-    vel = dx * 0.25; rot += vel;
-  });
-  const end = () => { dragging = false; stage.classList.remove('dragging'); };
-  stage.addEventListener('pointerup', end);
-  stage.addEventListener('pointercancel', end);
-  stage.addEventListener('click', (e) => { if (moved > 6) e.preventDefault(); }, true);
-
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  visibleLoop(stage, () => {
-    if (!dragging) { vel += (0.12 - vel) * 0.02; if (!reduce) rot += vel; }
-    ring.style.transform = `translateZ(${-radius}px) rotateX(-6deg) rotateY(${rot}deg)`;
   });
 }
 
@@ -267,7 +163,6 @@ function initViewer() {
     b.setAttribute('aria-pressed', 'true');
     size = b.textContent.trim();
   });
-  const va = document.getElementById('viewer-add'); if (va) va.onclick = () => addToCart(current, size);
 }
 
 /* ---------- reveal on scroll ---------- */
@@ -331,8 +226,6 @@ initBackdrop();
 initParallax();
 initNewsFilter();
 renderProductGrid();
-renderCart();
-initRing();
 initViewer();
 initReveal();
 initForm();

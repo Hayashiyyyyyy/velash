@@ -1,5 +1,4 @@
-/* VE:LASH FX 5 (phones): app-style bottom dock, swipe-rail pagination dots,
-   hold-to-warp light rings, light haptics */
+/* VE:LASH touch extras: swipe-rail pagination dots, hold-to-warp light rings, light haptics */
 (() => {
   const touch = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
   if (!touch) return;
@@ -53,6 +52,6 @@
 
   /* ---------- light haptics on taps ---------- */
   document.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.add-btn, .section-link, .t-buy, .submit-btn, .fab-store, .news-filter button, .menu-btn, .size-pick button, .color-pick button, .dock a')) buzz(6);
+    if (e.target.closest('.add-btn, .section-link, .t-buy, .submit-btn, .fab-store, .news-filter button, .menu-btn, .size-pick button, .color-pick button')) buzz(6);
   }, { passive: true });
 })();
