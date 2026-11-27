@@ -260,14 +260,14 @@ function initViewer() {
     current = b.dataset.id;
     const p = PRODUCTS.find((x) => x.id === current);
     imgs.forEach((im) => im.src = IMG + p.img);
-    document.getElementById('viewer-color').textContent = p.color.toUpperCase();
+    const vc = document.getElementById('viewer-color'); if (vc) vc.textContent = p.color.toUpperCase();
   });
   document.querySelectorAll('.size-pick button').forEach((b) => b.onclick = () => {
     document.querySelectorAll('.size-pick button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
     b.setAttribute('aria-pressed', 'true');
     size = b.textContent.trim();
   });
-  document.getElementById('viewer-add').onclick = () => addToCart(current, size);
+  const va = document.getElementById('viewer-add'); if (va) va.onclick = () => addToCart(current, size);
 }
 
 /* ---------- reveal on scroll ---------- */
