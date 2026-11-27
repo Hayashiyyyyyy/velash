@@ -615,7 +615,7 @@ let logoY = 0.7, logoScale = 1, portrait = false, skyLevel = 1;
 function layoutLogo(w, h) {
   portrait = w / h < 0.9;
   stars.forEach((s) => { s.visible = !portrait || s.userData.base.y > -1.5; });
-  wreathPivot.scale.setScalar(portrait ? 1.7 : 1.0);       // wreath must stay readable on a small screen
+  wreathPivot.scale.setScalar(portrait ? 2.1 : 1.0);       // wreath must stay readable on a small screen
   core.visible = ring2.visible = ring.visible = !portrait;  // less clutter around the logo on phones
   logoUniforms.uLift.value = portrait ? 1 : 0;
   // phones: cleaner, higher-contrast image (darker sky, less glow / grain / frost / colour fringing)
