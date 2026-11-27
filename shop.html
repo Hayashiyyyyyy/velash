@@ -12,9 +12,6 @@
 <link rel="stylesheet" href="assets/css/mobile.css">
 <link rel="stylesheet" href="assets/css/desktop.css">
 <link rel="stylesheet" href="assets/css/fx2.css">
-<script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
-</script>
 </head>
 <body data-page="shop">
 
@@ -35,27 +32,25 @@
         </div>
       </div>
       <div class="viewer-info">
-        <div class="viewer-tabs" role="tablist" aria-label="3Dで見る商品">
-          <button role="tab" data-model="hoodie" aria-selected="true">Hoodie</button>
-          <button role="tab" data-model="heart-tee" aria-selected="false">Heart Tee</button>
-          <button role="tab" data-model="classic-tee" aria-selected="false">Classic Tee</button>
-          <button role="tab" data-model="sweat-black" aria-selected="false">Crew Sweat</button>
-        </div>
-        <h2 id="viewer-name">VE:LASH Full-Zip<br>Hoodie</h2>
-        <p class="price" id="viewer-price">¥9,000</p>
-        <p id="viewer-desc">胸に大きくVE:LASHロゴ、袖と背面にもロゴを配したフルジップパーカー。</p>
-        <div id="viewer-colors" hidden>
-          <p class="opt-label">Color</p>
-          <div class="color-pick">
-            <button data-id="sweat-black" aria-pressed="true" aria-label="Black" style="background:#111"></button>
-            <button data-id="sweat-navy" aria-pressed="false" aria-label="Navy" style="background:#1b2340"></button>
-            <button data-id="sweat-pink" aria-pressed="false" aria-label="Pink" style="background:#f2a6c8"></button>
-          </div>
+        <p class="section-label" style="margin-bottom:14px">Featured / <span id="viewer-color">BLACK</span></p>
+        <h2>Graffiti Logo<br>Crew Sweat</h2>
+        <p class="price">COMING SOON</p>
+        <p>タギングをモチーフにした立体刺繍ロゴのクルーネックスウェット。近日発売予定。（商品説明は仮）</p>
+        <p class="opt-label">Color</p>
+        <div class="color-pick">
+          <button data-id="sweat-black" aria-pressed="true" aria-label="Black" style="background:#111"></button>
+          <button data-id="sweat-navy" aria-pressed="false" aria-label="Navy" style="background:#1b2340"></button>
+          <button data-id="sweat-pink" aria-pressed="false" aria-label="Pink" style="background:#f2a6c8"></button>
         </div>
         <p class="opt-label">Size</p>
-        <div class="size-pick" id="viewer-sizes"></div>
-        <a class="add-btn" id="viewer-buy" href="https://velash.base.shop/items/142651814" target="_blank" rel="noopener">Buy on BASE ↗</a>
-        <p class="viewer-hint">ドラッグで回転 / 背面も見られます</p>
+        <div class="size-pick">
+          <button aria-pressed="false">S</button>
+          <button aria-pressed="true">M</button>
+          <button aria-pressed="false">L</button>
+          <button aria-pressed="false">XL</button>
+        </div>
+        <span class="add-btn is-disabled" id="viewer-add" aria-disabled="true">Coming soon</span>
+        <a class="add-btn" href="https://velash.base.shop/" target="_blank" rel="noopener" style="margin-top:10px">Online Store (BASE) ↗</a>
       </div>
     </div>
   </section>
@@ -80,6 +75,5 @@
 <script src="assets/js/fx4.js"></script>
 <script src="assets/js/fx5.js"></script>
 <script src="assets/js/fx6.js"></script>
-<script type="module" src="assets/js/garment3d.js"></script>
 </body>
 </html>
