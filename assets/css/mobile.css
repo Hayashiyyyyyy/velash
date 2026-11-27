@@ -1,0 +1,51 @@
+/* =========================================================
+   MOBILE READABILITY (loaded last): bigger, brighter small text,
+   tighter scroll scenes, no dead black screens
+   ========================================================= */
+@media (max-width: 900px) {
+  :root { --muted: #b3b2c0; }                 /* brighter secondary text for small screens */
+  body { font-size: 15px; line-height: 1.75; }
+
+  /* small mono text: larger, less letter-spacing so it doesn't look like dust */
+  .section-label { font-size: 12px; letter-spacing: .14em; }
+  .page-hero p, .look-text p, .viewer-info p { font-size: 14px; line-height: 1.8; }
+  .product-name { font-size: 13px; line-height: 1.35; }
+  .product-row { font-size: 12px; }
+  .add-btn { font-size: 11px; letter-spacing: .12em; padding: 12px 6px; }
+  .news-date { font-size: 12px; }
+  .news-title { font-size: 15px; }
+  .news-filter button { font-size: 12px; }
+  .field label { font-size: 12px; letter-spacing: .12em; color: #d0cfdb; }
+  .field input, .field select, .field textarea { border-bottom-color: rgba(236, 235, 242, .32); }
+  .contact-info dt { font-size: 12px; }
+  .contact-info dd { font-size: 15px; }
+  .footer-nav { font-size: 13px; letter-spacing: .08em; gap: 48px; }
+  .footer-nav a { padding: 6px 0; }
+  .footer-bottom { font-size: 11px; }
+  .newsletter input, .newsletter button { font-size: 14px; }
+  .t-name { font-size: 15px; }
+  .t-meta { font-size: 13px; }
+  .t-buy { font-size: 12px; }
+  .look-card .num { font-size: 11px; }
+  .viewer-label { font-size: 11px; }
+
+  /* sub-page header: drop the empty band under the neon floor */
+  .page-hero { padding: 112px 18px 86px; }
+  .page-hero::before { height: 120px; }
+  .page-hero::after { bottom: 84px; }
+  .page-hero .section-title { font-size: clamp(40px, 12vw, 72px); }
+  .split .wd { white-space: nowrap; }
+
+  /* top page scroll scenes: shorter, never a fully black screen */
+  .hero-pin { height: 135vh; }
+  .hero::before { opacity: clamp(0, calc((var(--hp, 0) - .7) * 1.6), .55); }
+  .tapes { margin: 0; }
+  .statement { height: 175vh; }
+  .statement-text { font-size: clamp(32px, 9.6vw, 46px); line-height: 1.08; }
+  .statement-text .w { opacity: calc(.28 + var(--o, 0) * .72); }
+  .zoom { height: 175vh; }
+
+  /* sections: a little more air between blocks */
+  .section { padding: 72px 18px; }
+  .section-head { margin-bottom: 28px; }
+}

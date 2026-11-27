@@ -59,7 +59,8 @@
 .product-card.reveal.in { transform: none; }
 
 /* sub-page hero exits as you scroll */
-.page-hero .section-title { translate: 0 calc(var(--ph, 0) * -90px); opacity: calc(1 - var(--ph, 0) * 1.2); filter: blur(calc(var(--ph, 0) * 8px)); }
+.page-hero .section-title { translate: 0 calc(var(--ph, 0) * -90px); opacity: calc(1 - var(--ph, 0) * 1.2); text-shadow: none; filter: blur(calc(var(--ph, 0) * 8px)) drop-shadow(0 0 22px rgba(120, 200, 255, .28)); }
+.section-title.split { text-shadow: none; }
 .page-hero p { opacity: calc(1 - var(--ph, 0) * 1.6); }
 
 /* scroll progress */
