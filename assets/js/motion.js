@@ -60,8 +60,8 @@
     rail.innerHTML = PRODUCTS.map((p, i) => `
       <article class="t-card">
         <a class="t-media${p.photo ? ' is-photo' : ''}" href="${p.url || 'shop.html'}"${p.url ? ' target="_blank" rel="noopener"' : ''}>
-          <img loading="lazy" decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.w}w" sizes="(max-width: 900px) 78vw, 34vw" alt="${p.name} ${p.color}">
-          ${p.hover ? `<img class="t-hover" loading="lazy" decoding="async" src="${IMG}${p.hover.replace('.webp', '-640.webp')}" alt="">` : ''}
+          <img decoding="async" src="${IMG}${p.img}" srcset="${IMG}${p.img.replace('.webp', '-640.webp')} 640w, ${IMG}${p.img} ${p.w}w" sizes="(max-width: 900px) 78vw, 34vw" alt="${p.name} ${p.color}">
+          ${p.hover ? `<img class="t-hover" decoding="async" src="${IMG}${p.hover.replace('.webp', '-640.webp')}" alt="">` : ''}
           ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
         </a>
         <div class="t-info">

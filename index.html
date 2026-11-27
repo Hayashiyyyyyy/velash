@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="assets/css/mobile.css">
 <link rel="stylesheet" href="assets/css/desktop.css">
 <link rel="stylesheet" href="assets/css/fx2.css">
+<link rel="stylesheet" href="assets/css/brand.css">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
@@ -309,17 +310,20 @@ for (let i = 0; i < SLICES; i++) {
         if (alpha < 0.5) discard;
         vec3 col;
         if (uLayer > 0.99) {
-          float t = uTime * 0.6;
-          float band = sin(vUv.y * 9.0 - vUv.x * 3.0 + t * 2.0) * 0.5 + 0.5;
-          float sweep = smoothstep(0.0, 0.08, abs(fract(vUv.x * 0.6 - t * 0.25) - 0.5) - 0.42);
-          vec3 chrome = mix(vec3(0.32, 0.33, 0.38), vec3(0.86), band);
-          vec3 iri = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + vUv.x * 0.8 + t * 0.15));
-          col = mix(chrome, iri, 0.22);
-          col += (1.0 - sweep) * 0.6;
-          col = mix(col, vec3(1.0), uLift * 0.6) * (1.0 + uLift * 0.7); // phones: brighter face (tone mapping would otherwise grey it out)
+          // polished chrome: reflects a bright sky over a dark horizon (classic mirror-metal read), no rainbow
+          float t = uTime * 0.22;
+          float y = vUv.y + 0.07 * sin(vUv.x * 3.2 + t) + 0.025 * sin(vUv.x * 11.0 - t * 1.7);
+          vec3 sky = mix(vec3(0.66, 0.68, 0.74), vec3(0.97, 0.97, 0.99), smoothstep(0.52, 0.95, y));
+          vec3 ground = mix(vec3(0.07, 0.07, 0.09), vec3(0.30, 0.31, 0.35), smoothstep(0.05, 0.48, y));
+          col = mix(ground, sky, smoothstep(0.49, 0.53, y));
+          col += vec3(1.0) * 0.55 * smoothstep(0.012, 0.0, abs(y - 0.53));            // crisp horizon highlight
+          float gx = fract(t * 0.35) * 1.8 - 0.4;                                        // slow specular glint
+          col += vec3(1.0) * 0.45 * exp(-pow((vUv.x - gx - (vUv.y - 0.5) * 0.35) * 9.0, 2.0));
+          col = mix(col, vec3(1.0), uLift * 0.55) * (1.0 + uLift * 0.6); // phones: brighter face
         } else {
-          vec3 pink = vec3(1.0, 0.18, 0.56);
-          col = mix(pink * 1.2, vec3(0.08, 0.08, 0.11), smoothstep(0.0, 0.7, uLayer));
+          // graphite sides: light bevel next to the face, dark in depth, a thin brand-pink line only at the very back
+          col = mix(vec3(0.05, 0.05, 0.06), vec3(0.42, 0.43, 0.47), smoothstep(0.55, 0.97, uLayer));
+          col = mix(vec3(1.0, 0.18, 0.56) * 0.9, col, smoothstep(0.0, 0.12, uLayer));
         }
         // snow piled on every upward-facing edge (uneven thickness), with a little glitter
         float th = (0.018 + 0.022 * (0.5 + 0.5 * sin(vUv.x * 90.0)) * (0.5 + 0.5 * sin(vUv.x * 37.0 + 1.3))) * (1.0 - uLift * 0.55);
@@ -549,7 +553,7 @@ scene.add(streakLines);
 // MSAA on the main render target when the screen isn't already high-density (removes jaggies)
 const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: MAX_PR < 1.75 ? 4 : 0 }));
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.45, 0.45, 0.85);
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.22, 0.3, 0.92);   // restrained glow
 // glow is soft anyway: compute it at half resolution (big saving, no visible loss)
 const bloomSetSize = bloom.setSize.bind(bloom);
 bloom.setSize = (w, h) => bloomSetSize(Math.round(w * 0.5), Math.round(h * 0.5));
@@ -644,7 +648,7 @@ function layoutLogo(w, h) {
   logoUniforms.uLift.value = portrait ? 1 : 0;
   // phones: cleaner, higher-contrast image (darker sky, less glow / grain / frost / colour fringing)
   fx.uniforms.uClean.value = portrait ? 1 : 0;
-  bloom.strength = portrait ? 0.32 : 0.45;
+  bloom.strength = portrait ? 0.2 : 0.22;
   bloom.radius = portrait ? 0.12 : 0.45;   // tight glow on phones so thin strokes stay crisp
   skyLevel = portrait ? 0.16 : 1;                              // phones: near-black sky, aurora only a faint trace
   if (!portrait) { logoY = 0.7; logoScale = 1; return; }
@@ -702,12 +706,12 @@ function tick() {
   shared.uWarp.value = warp;
 
   // random glitch bursts
-  if (!reduce && now > nextGlitch) { glitch = 1; nextGlitch = now + 3 + Math.random() * 4; }
+  // (random glitch bursts removed: too "effect-y")
   glitch = Math.max(0, glitch - dt * 6);
   mouseVel *= 0.9;
   fx.uniforms.uTime.value = now;
   fx.uniforms.uGlitch.value = glitch;
-  fx.uniforms.uShift.value = (portrait ? 0.0006 : 0.002) + mouseVel * 0.01 + warp * 0.012;
+  fx.uniforms.uShift.value = 0.0004 + warp * 0.006;   // colour fringing only while warping
 
   mouse.lerp(target, 0.06);
   logoGroup.scale.setScalar((0.001 + ease * 0.999) * logoScale);
